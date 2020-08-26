@@ -16,6 +16,12 @@ class Node:
         """Discovers the neighbour nodes."""
         pass
 
+    def __repr__(self):
+        return '{0}, {1}'.format(self.address, self.name)
+
+    def __str__(self):
+        return '{0}, {1}'.format(self.address, self.name)
+
 
 class SensingNode(Node):
     """Defines attributes and methods of a regular sensing (not sink) node."""
