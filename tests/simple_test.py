@@ -3,6 +3,7 @@
 from simulator.node import SinkNode, SensingNode
 from simulator.link import Link
 from simulator.network import Network
+from simulator import Simulation
 
 
 def test_1():
@@ -15,6 +16,8 @@ def test_1():
     network = Network({sink, sensing}, {link})
     # Show information about the network
     network.display_summary()
+    # Create simulation
+    simulation = Simulation(network)
 
 
 if __name__ == '__main__':
