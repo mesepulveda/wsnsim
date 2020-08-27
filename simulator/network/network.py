@@ -18,6 +18,6 @@ class Network:
         for node in self.nodes:
             print(node)
         print()
-        print('> Links [address node 1, adress node 2]:')
+        print('> Links [address node 1, address node 2]:')
         for link in self.links:
             print(link)
