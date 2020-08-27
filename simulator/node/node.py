@@ -1,4 +1,5 @@
 """Everything related with the simulation of a node."""
+from .protocol_stack.routing.min_hop import MinHopRouting, MinHopRoutingSink
 
 
 class _Node:
@@ -41,12 +42,13 @@ class SinkNode(_Node):
 class _SimulationNode(_Node):
     """Extends Node class in order to simulate."""
 
-    def __init__(self, address, name=None):
+    def __init__(self, address, name, routing_protocol):
         super().__init__(address, name)
+        self.routing_protocol = routing_protocol(address)
 
-    def send_message(self, message):
+    def send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
-        pass
+        return self.routing_protocol.send_message(message, destination)
 
     def _receive_message(self, message):
         """Receive a message from another node."""
@@ -58,11 +60,11 @@ class _SimulationNode(_Node):
         pass
 
 
-class SimulationSensingNode(SensingNode, _SimulationNode):
+class SimulationSensingNode(_SimulationNode, SensingNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name=None):
-        super().__init__(address, name)
+    def __init__(self, address, name, routing_protocol):
+        super().__init__(address, name, routing_protocol)
 
     def clean_simulation(self):
         """Clears logs of simulations."""
@@ -71,11 +73,11 @@ class SimulationSensingNode(SensingNode, _SimulationNode):
         pass
 
 
-class SimulationSinkNode(SinkNode, _SimulationNode):
+class SimulationSinkNode(_SimulationNode, SinkNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name=None):
-        super().__init__(address, name)
+    def __init__(self, address, name, routing_protocol):
+        super().__init__(address, name, routing_protocol)
 
     def clean_simulation(self):
         """Clears logs of simulations."""
@@ -84,16 +86,19 @@ class SimulationSinkNode(SinkNode, _SimulationNode):
         pass
 
 
-def convert_to_simulation_nodes(nodes):
+def convert_to_simulation_nodes(nodes, routing_stack_name):
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
+    if routing_stack_name == 'min-hop':
+        routing_sensing_node = MinHopRouting
+        routing_sink_node = MinHopRoutingSink
     for node in nodes:
         address = node.address
         name = node.name
         if isinstance(node, SensingNode):
-            simulation_node = SimulationSensingNode(address, name)
+            simulation_node = SimulationSensingNode(address, name, routing_sensing_node)
         elif isinstance(node, SinkNode):
-            simulation_node = SimulationSinkNode(address, name)
+            simulation_node = SimulationSinkNode(address, name, routing_sink_node)
         else:
             raise AttributeError('Class of node is not correct')
         simulation_nodes.append(simulation_node)

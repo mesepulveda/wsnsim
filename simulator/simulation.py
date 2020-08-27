@@ -11,8 +11,11 @@ DEFAULT_SEED = 290696
 class Simulation:
     """Manage a simulation."""
 
-    def __init__(self, network):
-        simulation_nodes = convert_to_simulation_nodes(network.nodes)
+    def __init__(self, network, stack):
+        self.stack = stack
+        if self.stack == 'default':
+            routing_stack = 'min-hop'
+        simulation_nodes = convert_to_simulation_nodes(network.nodes, routing_stack)
         simulation_links = convert_to_simulation_links(network.links,
                                                        simulation_nodes)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)

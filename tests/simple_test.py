@@ -17,7 +17,9 @@ def test_1():
     # Show information about the network
     network.display_summary()
     # Create simulation
-    simulation = Simulation(network)
+    simulation = Simulation(network, stack='default')
+    # Send a message
+    print(simulation.network.nodes[1].send_message('Hello', 'sink'))
 
 
 if __name__ == '__main__':
