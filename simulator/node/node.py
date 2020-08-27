@@ -12,10 +12,6 @@ class _Node:
             self.name = str(address)
         self.neighbours = set()
 
-    def find_neighbours(self):
-        """Discovers the neighbour nodes."""
-        pass
-
     def __repr__(self):
         return '{0}, {1}'.format(self.address, self.name)
 
