@@ -27,3 +27,8 @@ class SimulationNetwork(Network):
 
     def __init__(self, simulation_nodes, simulation_links):
         super().__init__(simulation_nodes, simulation_links)
+
+    def clean_simulation(self):
+        """Clears logs of simulations."""
+        # todo: implement it
+        pass

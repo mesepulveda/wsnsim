@@ -48,6 +48,11 @@ class _SimulationNode(_Node):
     def __init__(self, address, name=None):
         super().__init__(address, name)
 
+    def clean_simulation(self):
+        """Clears logs of simulations."""
+        # todo: implement it
+        pass
+
 
 class SimulationSensingNode(SensingNode, _SimulationNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
@@ -55,12 +60,24 @@ class SimulationSensingNode(SensingNode, _SimulationNode):
     def __init__(self, address, name=None):
         super().__init__(address, name)
 
+    def clean_simulation(self):
+        """Clears logs of simulations."""
+        # todo: implement it
+        super().clean_simulation()
+        pass
+
 
 class SimulationSinkNode(SinkNode, _SimulationNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
     def __init__(self, address, name=None):
         super().__init__(address, name)
+
+    def clean_simulation(self):
+        """Clears logs of simulations."""
+        # todo: implement it
+        super().clean_simulation()
+        pass
 
 
 def convert_to_simulation_nodes(nodes):
