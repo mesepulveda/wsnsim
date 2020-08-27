@@ -1,5 +1,4 @@
 """Everything related with the network."""
-
 from ..auxiliary_functions import print_with_asterisks
 
 
@@ -21,3 +20,10 @@ class Network:
         print('> Links [address node 1, address node 2]:')
         for link in self.links:
             print(link)
+
+
+class SimulationNetwork(Network):
+    """Extends Network class in order to simulate."""
+
+    def __init__(self, simulation_nodes, simulation_links):
+        super().__init__(simulation_nodes, simulation_links)
