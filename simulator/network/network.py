@@ -1,6 +1,6 @@
 """Everything related with the network."""
 
-from ..auxiliary_functions import add_asterisks
+from ..auxiliary_functions import print_with_asterisks
 
 
 class Network:
@@ -10,7 +10,7 @@ class Network:
         self.nodes = sorted(nodes, key=lambda node: node.address)
         self.links = links
 
-    @add_asterisks
+    @print_with_asterisks
     def display_summary(self):
         """Shows a description of the network."""
         print('>> Network summary')

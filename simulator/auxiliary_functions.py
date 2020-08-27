@@ -1,7 +1,7 @@
 """Some functions that might be useful in other files."""
 
 
-def add_asterisks(function):
+def print_with_asterisks(function):
     """Used as a decorator.
 
     Adds asterisks before and after the execution of a function.
