@@ -27,7 +27,7 @@ class SensingNode(Node):
     """Defines attributes and methods of a regular sensing (not sink) node."""
 
     def __init__(self, address, name=None):
-        super(SensingNode, self).__init__(address, name)
+        super().__init__(address, name)
 
     def get_next_hop_node(self):
         """Returns the node to route data."""
@@ -38,5 +38,5 @@ class SinkNode(Node):
     """Defines attributes and methods specific for a sink node."""
 
     def __init__(self, address, name=None):
-        super(SinkNode, self).__init__(address, name)
+        super().__init__(address, name)
         pass
