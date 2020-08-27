@@ -44,7 +44,15 @@ class _SimulationNode(_Node):
     def __init__(self, address, name=None):
         super().__init__(address, name)
 
-    def clean_simulation(self):
+    def send_message(self, message):
+        """Sends a message to sink or neighbour nodes."""
+        pass
+
+    def _receive_message(self, message):
+        """Receive a message from another node."""
+        pass
+
+    def clear_simulation(self):
         """Clears logs of simulations."""
         # todo: implement it
         pass

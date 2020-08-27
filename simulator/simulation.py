@@ -22,14 +22,14 @@ class Simulation:
         self.clean_simulation(seed_value)
         pass
 
-    def clean_simulation(self, seed_value=None):
-        """Clean up everything before a simulation is run."""
+    def clear_simulation(self, seed_value=None):
+        """Clears everything before a simulation is run."""
         # Clear logging variables of network, nodes and links
-        self.network.clean_simulation()
+        self.network.clear_simulation()
         for node in self.network.nodes:
-            node.clean_simulation()
+            node.clear_simulation()
         for link in self.network.links:
-            link.clean_simulation()
+            link.clear_simulation()
         # Restart the seed
         if seed_value:
             random.seed(seed_value)
