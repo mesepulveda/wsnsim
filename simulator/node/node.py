@@ -77,3 +77,23 @@ def convert_to_simulation_nodes(nodes):
             raise AttributeError('Class of node is not correct')
         simulation_nodes.append(simulation_node)
     return simulation_nodes
+
+
+def get_equivalent_simulation_node(nodes, simulation_nodes):
+    """Returns the equivalent simulation node of one or many nodes."""
+    # If it is only one object
+    if isinstance(nodes, (SensingNode, SinkNode)):
+        return _get_equivalent_node(nodes, simulation_nodes)
+    # If it is a list of objects
+    equivalent_simulation_nodes = []
+    for node in nodes:
+        equivalent_node = _get_equivalent_node(node, simulation_nodes)
+        equivalent_simulation_nodes.append(equivalent_node)
+    return equivalent_simulation_nodes
+
+
+def _get_equivalent_node(node, simulation_nodes):
+    """Returns the equivalent simulation node of one node."""
+    for simulation_node in simulation_nodes:
+        if node.address == simulation_node.address:
+            return simulation_node

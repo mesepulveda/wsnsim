@@ -8,7 +8,8 @@ class Simulation:
     """Manage a simulation."""
     def __init__(self, network):
         simulation_nodes = convert_to_simulation_nodes(network.nodes)
-        simulation_links = convert_to_simulation_links(network.links)
+        simulation_links = convert_to_simulation_links(network.links,
+                                                       simulation_nodes)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
 
     def run(self, time):

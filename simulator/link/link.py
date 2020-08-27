@@ -1,5 +1,6 @@
 """Everything related with the simulation of a link."""
 from simulator.auxiliary_functions import ensure_positive_value
+from simulator.node import get_equivalent_simulation_node
 
 
 class Link:
@@ -28,10 +29,14 @@ class SimulationLink(Link):
         super().__init__(node_1, node_2, delay_function)
 
 
-def convert_to_simulation_links(links):
+def convert_to_simulation_links(links, simulation_nodes):
     """Returns simulation links from regular links."""
-    # noinspection PyProtectedMember
-    simulation_links = [
-        SimulationLink(*link.nodes, link._delay_function) for link in links
-    ]
+    simulation_links = []
+    for link in links:
+        simulation_equivalent_nodes = \
+            get_equivalent_simulation_node(link.nodes, simulation_nodes)
+        # noinspection PyProtectedMember
+        simulation_link = \
+            SimulationLink(*simulation_equivalent_nodes, link._delay_function)
+        simulation_links.append(simulation_link)
     return simulation_links
