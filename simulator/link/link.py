@@ -13,7 +13,7 @@ class Link:
     @ensure_positive_value
     def get_delay(self):
         """Returns a realization of delay value of the link."""
-        return self.delay_function()
+        return self._delay_function()
 
     def __repr__(self):
         return '{0}, {1}'.format(*[node.address for node in self.nodes])
