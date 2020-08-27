@@ -25,6 +25,6 @@ def ensure_positive_value(function):
         """Ensures that the value is 0 or positive."""
         value = function(*args, **kwargs)
         if value < 0:
-            raise ValueError('Delay value obtained is negative')
+            raise ValueError('Value obtained is negative')
         return value
     return inner
