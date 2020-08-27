@@ -13,11 +13,11 @@ class Network:
     @add_asterisks
     def display_summary(self):
         """Shows a description of the network."""
-        print('Network summary')
-        print('Nodes [node address, node name]:')
+        print('>> Network summary')
+        print('> Nodes [node address, node name]:')
         for node in self.nodes:
             print(node)
         print()
-        print('Links [address node 1, adress node 2]:')
+        print('> Links [address node 1, adress node 2]:')
         for link in self.links:
             print(link)
