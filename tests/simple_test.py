@@ -1,8 +1,8 @@
 """Some very simple test of the simulator."""
 
-from simulator.node.node import SinkNode, SensingNode
-from simulator.link.link import Link
-from simulator.network.network import Network
+from simulator.node import SinkNode, SensingNode
+from simulator.link import Link
+from simulator.network import Network
 
 
 def test_1():
