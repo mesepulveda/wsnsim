@@ -14,28 +14,32 @@ class _MinHopRouting:
     def __init__(self, address):
         self.address = address
         self.neighbours = set()
-        self.access_function = None
+        self._access_function = None
+
+    def setup_access_function(self, access_function):
+        """Associates the medium access function with the protocol stack."""
+        self._access_function = access_function
 
     def _send_data_to_medium(self, data):
-        return self.access_function(data)
+        return self._access_function(data)
 
-    def send_message(self, message, destination):
+    def send_packet(self, message, destination):
         """Method to send a message to a destination."""
         next_hop_address = self._choose_next_hop_address(destination)
         if next_hop_address is None:
             # First we need to discover neighbours
             self._find_neighbours()
-            return self.send_message(message, destination)
+            return self.send_packet(message, destination)
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         print('{0} sending: {1}'.format(self.address, data))
         self._send_data_to_medium(data)
 
-    def receive_message(self, message):
+    def receive_packet(self, message):
         print('{0} received: {1}'.format(self.address, message))
         origin_address, _, data = get_components_of_message(message)
         self.neighbours.add(origin_address)
         if data != 'ACK':
-            self.send_message('ACK', origin_address)
+            self.send_packet('ACK', origin_address)
 
     def _choose_next_hop_address(self, destination):
         """Returns one or a list of nodes to route data."""

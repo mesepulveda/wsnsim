@@ -8,10 +8,9 @@ class _Node:
     def __init__(self, address, name=None):
         self.address = str(address)
         if name:
-            self.name = name
+            self.name = str(name)
         else:
-            self.name = str(address)
-        self.neighbours = set()
+            self.name = self.address
 
     def __repr__(self):
         return '{0}, {1}'.format(self.address, self.name)
@@ -26,17 +25,12 @@ class SensingNode(_Node):
     def __init__(self, address, name=None):
         super().__init__(address, name)
 
-    def get_next_hop_node(self):
-        """Returns the node to route data."""
-        pass
-
 
 class SinkNode(_Node):
     """Defines attributes and methods specific for a sink node."""
 
     def __init__(self, address, name=None):
         super().__init__(address, name)
-        pass
 
 
 class _SimulationNode(_Node):
@@ -48,15 +42,15 @@ class _SimulationNode(_Node):
 
     def setup_medium_access(self, access_function):
         """Associates the medium access function with the node."""
-        self.routing_protocol.access_function = access_function
+        self.routing_protocol.setup_access_function(access_function)
 
     def send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
-        return self.routing_protocol.send_message(message, destination)
+        return self.routing_protocol.send_packet(message, destination)
 
     def receive_message(self, message):
         """Receive a message from another node."""
-        return self.routing_protocol.receive_message(message)
+        return self.routing_protocol.receive_packet(message)
 
     def clear_simulation(self):
         """Clears logs of simulations."""
@@ -70,10 +64,10 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
     def __init__(self, address, name, routing_protocol):
         super().__init__(address, name, routing_protocol)
 
-    def clean_simulation(self):
+    def clear_simulation(self):
         """Clears logs of simulations."""
         # todo: implement it
-        super().clean_simulation()
+        super().clear_simulation()
         pass
 
 
@@ -83,26 +77,33 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
     def __init__(self, address, name, routing_protocol):
         super().__init__(address, name, routing_protocol)
 
-    def clean_simulation(self):
+    def clear_simulation(self):
         """Clears logs of simulations."""
         # todo: implement it
-        super().clean_simulation()
+        super().clear_simulation()
         pass
 
 
-def convert_to_simulation_nodes(nodes, routing_stack_name):
+def convert_to_simulation_nodes(regular_nodes, routing_stack_name):
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
     if routing_stack_name == 'min-hop':
         routing_sensing_node = MinHopRouting
         routing_sink_node = MinHopRoutingSink
-    for node in nodes:
+    else:  # Default routing protocol
+        routing_sensing_node = MinHopRouting
+        routing_sink_node = MinHopRoutingSink
+    for node in regular_nodes:
         address = node.address
         name = node.name
         if isinstance(node, SensingNode):
-            simulation_node = SimulationSensingNode(address, name, routing_sensing_node)
+            simulation_node = SimulationSensingNode(address,
+                                                    name,
+                                                    routing_sensing_node)
         elif isinstance(node, SinkNode):
-            simulation_node = SimulationSinkNode(address, name, routing_sink_node)
+            simulation_node = SimulationSinkNode(address,
+                                                 name,
+                                                 routing_sink_node)
         else:
             raise AttributeError('Class of node is not correct')
         simulation_nodes.append(simulation_node)
