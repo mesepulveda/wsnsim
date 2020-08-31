@@ -17,7 +17,7 @@ def test_1():
     # Show information about the network
     network.display_summary()
     # Create simulation
-    simulation = Simulation(network, stack='default')
+    simulation = Simulation(network, protocol_stack='default')
     # Send a message
     simulation.network.nodes[1].send_message('Hello', 'broadcast')
 
