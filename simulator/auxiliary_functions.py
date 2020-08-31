@@ -28,3 +28,13 @@ def ensure_positive_value(function):
             raise ValueError('Value obtained is negative')
         return value
     return inner
+
+
+def get_components_of_message(data):
+    """Returns the three components (origin, destination, message)
+    of a data packet."""
+    data_list = data.split(',')
+    origin = data_list[0]
+    destination = data_list[1]
+    message = data_list[2]
+    return origin, destination, message
