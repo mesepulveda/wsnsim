@@ -19,7 +19,8 @@ def test_1():
     # Create simulation
     simulation = Simulation(network, protocol_stack='default')
     # Send a message
-    simulation.network.nodes[1].send_message('Hello', 'broadcast')
+    for node in simulation.network.nodes:
+        node.send_message('Hello', 'broadcast')
 
 
 if __name__ == '__main__':
