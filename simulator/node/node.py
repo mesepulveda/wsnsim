@@ -6,7 +6,7 @@ class _Node:
     """Defines attributes and methods needed in both sink and sensing nodes."""
 
     def __init__(self, address, name=None):
-        self.address = address
+        self.address = str(address)
         if name:
             self.name = name
         else:
@@ -46,13 +46,17 @@ class _SimulationNode(_Node):
         super().__init__(address, name)
         self.routing_protocol = routing_protocol(address)
 
+    def setup_medium_access(self, access_function):
+        """Associates the medium access function with the node."""
+        self.routing_protocol.access_function = access_function
+
     def send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
         return self.routing_protocol.send_message(message, destination)
 
-    def _receive_message(self, message):
+    def receive_message(self, message):
         """Receive a message from another node."""
-        pass
+        return self.routing_protocol.receive_message(message)
 
     def clear_simulation(self):
         """Clears logs of simulations."""

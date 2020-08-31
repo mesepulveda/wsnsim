@@ -1,4 +1,5 @@
 """Implements min-hop routing protocol/metric."""
+from simulator.auxiliary_functions import get_components_of_message
 
 
 def _find_min_hop_neighbour(neighbours):
@@ -7,40 +8,50 @@ def _find_min_hop_neighbour(neighbours):
         return neighbours[0]
 
 
-def _send_data_to_medium(data):
-    """Sends the data to the medium in order to reach other nodes."""
-    print(data)
-    return True
-
-
 class _MinHopRouting:
     """Private base class for the min-hop routing."""
 
     def __init__(self, address):
         self.address = address
         self.neighbours = set()
-        self._find_neighbours()
+        self.access_function = None
+
+    def _send_data_to_medium(self, data):
+        return self.access_function(data)
 
     def send_message(self, message, destination):
         """Method to send a message to a destination."""
-        next_hop = self._choose_next_hop(destination)
-        return _send_data_to_medium(str(next_hop.address)+message)
+        next_hop_address = self._choose_next_hop_address(destination)
+        if next_hop_address is None:
+            # First we need to discover neighbours
+            self._find_neighbours()
+            return self.send_message(message, destination)
+        data = '{},{},{}'.format(self.address, next_hop_address, message)
+        print('{0} sending: {1}'.format(self.address, data))
+        self._send_data_to_medium(data)
 
-    def _choose_next_hop(self, destination):
+    def receive_message(self, message):
+        print('{0} received: {1}'.format(self.address, message))
+        origin_address, _, data = get_components_of_message(message)
+        self.neighbours.add(origin_address)
+        if data != 'ACK':
+            self.send_message('ACK', origin_address)
+
+    def _choose_next_hop_address(self, destination):
         """Returns one or a list of nodes to route data."""
         if destination == 'broadcast':
-            return self.neighbours
+            return ''
         elif destination in self.neighbours:
             return destination
-        if destination == 'sink':
+        elif destination == 'sink':
             min_hop_neighbour = _find_min_hop_neighbour(self.neighbours)
-            return min_hop_neighbour
+            return min_hop_neighbour.address
         return None
 
     def _find_neighbours(self):
         """Method to discover neighbours."""
         # send 'hello'
-        _send_data_to_medium('{},{},{}'.format(self.address, '', 'hello'))
+        self._send_data_to_medium('{},{},{}'.format(self.address, '', 'hello'))
         # wait until the neighbours answer...
 
 

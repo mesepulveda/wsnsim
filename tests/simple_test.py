@@ -19,7 +19,7 @@ def test_1():
     # Create simulation
     simulation = Simulation(network, stack='default')
     # Send a message
-    print(simulation.network.nodes[1].send_message('Hello', 'sink'))
+    simulation.network.nodes[1].send_message('Hello', 'broadcast')
 
 
 if __name__ == '__main__':
