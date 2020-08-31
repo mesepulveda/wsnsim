@@ -2,7 +2,7 @@
 import random
 
 from simulator.link import convert_to_simulation_links
-from simulator.medium import setup_nodes_medium_access, Medium
+from simulator.medium import Medium, setup_nodes_medium_access
 from simulator.network import SimulationNetwork
 from simulator.node import convert_to_simulation_nodes
 
@@ -16,11 +16,13 @@ class Simulation:
         self.protocol_stack = protocol_stack
         if self.protocol_stack == 'default':
             routing_stack = 'min-hop'
-        simulation_nodes = convert_to_simulation_nodes(network.nodes, routing_stack)
+        simulation_nodes = convert_to_simulation_nodes(network.nodes,
+                                                       routing_stack)
         simulation_links = convert_to_simulation_links(network.links,
                                                        simulation_nodes)
-        self.medium = Medium(simulation_links, simulation_links)
-        setup_nodes_medium_access(simulation_nodes, self.medium.send_data_to_medium)
+        self.medium = Medium(simulation_links)
+        setup_nodes_medium_access(simulation_nodes,
+                                  self.medium.send_data_to_medium)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
 
     def run(self, time, seed_value=DEFAULT_SEED):
