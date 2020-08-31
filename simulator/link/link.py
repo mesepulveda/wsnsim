@@ -56,3 +56,22 @@ def convert_to_simulation_links(links, simulation_nodes):
             SimulationLink(*simulation_equivalent_nodes, link._delay_function)
         simulation_links.append(simulation_link)
     return simulation_links
+
+
+def get_link_(origin_address, destination_address, links):
+    """Returns a link, if exist, that relates two nodes."""
+    for link in links:
+        nodes_addresses = {node.address for node in link.nodes}
+        if nodes_addresses == {origin_address, destination_address}:
+            return link
+    return None
+
+
+def get_all_links_of_node(node_address, links):
+    """Returns all the links of a node."""
+    node_links = []
+    for link in links:
+        link_addresses = {node.address for node in link.nodes}
+        if node_address in link_addresses:
+            node_links.append(link)
+    return node_links
