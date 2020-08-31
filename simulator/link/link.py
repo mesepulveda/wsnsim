@@ -15,6 +15,17 @@ class Link:
         """Returns a realization of delay value of the link."""
         return self._delay_function()
 
+    def get_destination(self, origin_address):
+        """Returns the destination node of the link from the origin address."""
+        origin_node = None
+        for node in self.nodes:
+            if node.address == origin_address:
+                origin_node = node
+        if origin_node is None:
+            return None
+        destination_node = (set(self.nodes) - {origin_node}).pop()
+        return destination_node
+
     def __repr__(self):
         return '{0}, {1}'.format(*[node.address for node in self.nodes])
 
