@@ -1,7 +1,7 @@
 """Module with code related to the events of the simulator."""
 
 
-class Event:
+class _BaseEvent:
     """Base class for the events of the simulator."""
 
     def __init__(self, event_id, event_time):
