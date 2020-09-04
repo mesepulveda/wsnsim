@@ -39,11 +39,6 @@ class SimulationLink(Link):
     def __init__(self, node_1, node_2, delay_function):
         super().__init__(node_1, node_2, delay_function)
 
-    def clear_simulation(self):
-        """Clears logs of simulations."""
-        # todo: implement it
-        pass
-
 
 def convert_to_simulation_links(links, simulation_nodes):
     """Returns simulation links from regular links."""
