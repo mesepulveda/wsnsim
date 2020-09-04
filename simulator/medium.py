@@ -7,12 +7,16 @@ class Medium:
     """Abstraction of the Physical Medium to communicate in Radio Frequency."""
 
     def __init__(self):
-        self.links = None
+        self._links = None
+        
+    def setup_links(self, links):
+        """Updates the links used by the medium object."""
+        self._links = links
 
     def send_data_to_medium(self, data):
         """Sends the data to the medium in order to reach other nodes."""
         origin_address, _, _ = get_components_of_message(data)
-        links = get_all_links_of_node(origin_address, self.links)
+        links = get_all_links_of_node(origin_address, self._links)
         for link in links:
             destination_node = link.get_destination(origin_address)
             destination_node.receive_message(data)
