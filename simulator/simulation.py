@@ -15,15 +15,15 @@ class Simulation:
 
     def __init__(self, network, routing_protocol):
         self.env = simpy.Environment()
-        self.routing_protocol = routing_protocol
+        self.medium = Medium()
+        send_data_function = self.medium.send_data_to_medium
         simulation_nodes = convert_to_simulation_nodes(network.nodes,
-                                                       self.routing_protocol,
+                                                       routing_protocol,
+                                                       send_data_function,
                                                        self.env)
         simulation_links = convert_to_simulation_links(network.links,
                                                        simulation_nodes)
-        self.medium = Medium(simulation_links)
-        setup_nodes_medium_access(simulation_nodes,
-                                  self.medium.send_data_to_medium)
+        self.medium.links = simulation_links
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
 
     def run(self, time, seed_value=DEFAULT_SEED):

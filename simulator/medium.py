@@ -12,8 +12,8 @@ def setup_nodes_medium_access(simulation_nodes, send_data_to_medium):
 class Medium:
     """Abstraction of the Physical Medium to communicate in Radio Frequency."""
 
-    def __init__(self, links):
-        self.links = links
+    def __init__(self):
+        self.links = None
 
     def send_data_to_medium(self, data):
         """Sends the data to the medium in order to reach other nodes."""

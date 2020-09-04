@@ -39,16 +39,13 @@ class SinkNode(_Node):
 class _SimulationNode(_Node):
     """Extends Node class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol,
+    def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
         super().__init__(address, name)
         self.routing_protocol = routing_protocol(address)
+        self.medium = send_data_function
+        self.routing_protocol.setup_access_function(send_data_function)
         self.env = env
-
-    def setup_medium_access(self, access_function):
-        """Associates the medium access function with the node."""
-        self.routing_protocol.setup_access_function(access_function)
-        # todo: clear this dependency, the medium should be setup in the init
         self.env.process(self._main_routine())
 
     def _send_message(self, message, destination):
@@ -71,20 +68,20 @@ class _SimulationNode(_Node):
 class SimulationSensingNode(_SimulationNode, SensingNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol,
+    def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, env)
+        super().__init__(address, name, routing_protocol, send_data_function, env)
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol,
+    def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, env)
+        super().__init__(address, name, routing_protocol, send_data_function, env)
 
 
-def convert_to_simulation_nodes(regular_nodes, routing_protocol, env):
+def convert_to_simulation_nodes(regular_nodes, routing_protocol, send_data_function, env):
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
     if routing_protocol == 'min-hop':
@@ -100,11 +97,13 @@ def convert_to_simulation_nodes(regular_nodes, routing_protocol, env):
             simulation_node = SimulationSensingNode(address,
                                                     name,
                                                     routing_sensing_node,
+                                                    send_data_function,
                                                     env)
         elif isinstance(node, SinkNode):
             simulation_node = SimulationSinkNode(address,
                                                  name,
                                                  routing_sink_node,
+                                                 send_data_function,
                                                  env)
         else:
             raise AttributeError('Class of node is not correct')
