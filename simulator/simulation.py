@@ -3,7 +3,7 @@ import random
 import simpy
 
 from simulator.link import convert_to_simulation_links
-from simulator.medium import Medium, setup_nodes_medium_access
+from simulator.medium import Medium
 from simulator.network import SimulationNetwork
 from simulator.node import convert_to_simulation_nodes
 
