@@ -70,7 +70,8 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
 
     def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, send_data_function, env)
+        super().__init__(address, name, routing_protocol, send_data_function,
+                         env)
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
@@ -78,10 +79,12 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
 
     def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, send_data_function, env)
+        super().__init__(address, name, routing_protocol, send_data_function,
+                         env)
 
 
-def convert_to_simulation_nodes(regular_nodes, routing_protocol, send_data_function, env):
+def convert_to_simulation_nodes(regular_nodes, routing_protocol,
+                                send_data_function, env):
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
     if routing_protocol == 'min-hop':
