@@ -22,3 +22,13 @@ class DataReceived(_NodeEvent):
     def __init__(self, event_time, node, data):
         super().__init__(event_time, node)
         self.data = data
+
+
+class NodeWakesUp(_NodeEvent):
+    """Event generated when a node wakes up."""
+
+    def __init__(self, event_time, node):
+        super().__init__(event_time, node)
+
+    def execute(self):
+        print(f'{self.time}Node {node.name} is awake')
