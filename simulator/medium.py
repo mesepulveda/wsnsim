@@ -6,7 +6,8 @@ from simulator.link import get_all_links_of_node
 class Medium:
     """Abstraction of the Physical Medium to communicate in Radio Frequency."""
 
-    def __init__(self):
+    def __init__(self, env):
+        self.env = env
         self._links = None
         
     def setup_links(self, links):
@@ -19,4 +20,5 @@ class Medium:
         links = get_all_links_of_node(origin_address, self._links)
         for link in links:
             destination_node = link.get_destination(origin_address)
-            destination_node.receive_message(data)
+            yield self.env.timeout(link.get_delay())
+            self.env.process(destination_node.receive_message(data))

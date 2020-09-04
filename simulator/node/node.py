@@ -43,22 +43,23 @@ class _SimulationNode(_Node):
                  env: simpy.Environment):
         super().__init__(address, name)
         self._access_function = send_data_function
-        self.routing_protocol = routing_protocol(address, self._radio)
+        self.routing_protocol = routing_protocol(address, self._radio, env)
         self.env = env
         self.env.process(self._main_routine())
 
     def _radio(self, data):
-        return self._access_function(data)
+        yield self.env.process(self._access_function(data))
 
     def _send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
         # Pass the message to the routing protocol
-        return self.routing_protocol.send_packet(message, destination)
+        yield self.env.process(self.routing_protocol.send_packet(message,
+                                                                 destination))
 
     def receive_message(self, message):
         """Receive a message from another node."""
         # Pass the message to the routing protocol in order to analyze it
-        return self.routing_protocol.receive_packet(message)
+        yield self.env.process(self.routing_protocol.receive_packet(message))
 
     def _main_routine(self):
         """Main routine of the nodes."""
@@ -66,7 +67,7 @@ class _SimulationNode(_Node):
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
         yield self.env.timeout(15)  # Wait 15 second until every node wakes up
-        self._send_message('Hello', 'broadcast')
+        yield self.env.process(self._send_message('Hello', 'broadcast'))
 
 
 class SimulationSensingNode(_SimulationNode, SensingNode):

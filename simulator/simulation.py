@@ -15,7 +15,7 @@ class Simulation:
 
     def __init__(self, network, routing_protocol):
         self.env = simpy.Environment()
-        self.medium = Medium()
+        self.medium = Medium(self.env)
         send_data_function = self.medium.send_data_to_medium
         simulation_nodes = convert_to_simulation_nodes(network.nodes,
                                                        routing_protocol,
