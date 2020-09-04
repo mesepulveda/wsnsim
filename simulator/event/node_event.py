@@ -29,6 +29,3 @@ class NodeWakesUp(_NodeEvent):
 
     def __init__(self, event_time, node):
         super().__init__(event_time, node)
-
-    def execute(self):
-        print(f'{self.time}Node {node.name} is awake')
