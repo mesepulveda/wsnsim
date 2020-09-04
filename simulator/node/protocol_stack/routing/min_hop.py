@@ -11,14 +11,10 @@ def _find_min_hop_neighbour(neighbours):
 class _MinHopRouting:
     """Private base class for the min-hop routing."""
 
-    def __init__(self, address):
+    def __init__(self, address, access_function):
         self.address = address
-        self.neighbours = set()
-        self._access_function = None
-
-    def setup_access_function(self, access_function):
-        """Associates the medium access function with the protocol stack."""
         self._access_function = access_function
+        self.neighbours = set()
 
     def _send_data_to_medium(self, data):
         return self._access_function(data)
@@ -62,12 +58,12 @@ class _MinHopRouting:
 class MinHopRouting(_MinHopRouting):
     """Class of min-hop routing protocol for sensing nodes."""
 
-    def __init__(self, address):
-        super().__init__(address)
+    def __init__(self, address, access_function):
+        super().__init__(address, access_function)
 
 
 class MinHopRoutingSink(_MinHopRouting):
     """Class of min-hop routing protocol for sink node."""
 
-    def __init__(self, address):
-        super().__init__(address)
+    def __init__(self, address, access_function):
+        super().__init__(address, access_function)

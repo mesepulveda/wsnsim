@@ -42,18 +42,18 @@ class _SimulationNode(_Node):
     def __init__(self, address, name, routing_protocol, send_data_function,
                  env: simpy.Environment):
         super().__init__(address, name)
-        self.routing_protocol = routing_protocol(address)
-        self.medium = send_data_function
-        self.routing_protocol.setup_access_function(send_data_function)
+        self.routing_protocol = routing_protocol(address, send_data_function)
         self.env = env
         self.env.process(self._main_routine())
 
     def _send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
+        # Pass the message to the routing protocol
         return self.routing_protocol.send_packet(message, destination)
 
     def receive_message(self, message):
         """Receive a message from another node."""
+        # Pass the message to the routing protocol in order to analyze it
         return self.routing_protocol.receive_packet(message)
 
     def _main_routine(self):
