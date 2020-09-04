@@ -11,13 +11,13 @@ def _find_min_hop_neighbour(neighbours):
 class _MinHopRouting:
     """Private base class for the min-hop routing."""
 
-    def __init__(self, address, access_function):
+    def __init__(self, address, radio):
         self.address = address
-        self._access_function = access_function
+        self._radio = radio
         self.neighbours = set()
 
     def _send_data_to_medium(self, data):
-        return self._access_function(data)
+        return self._radio(data)
 
     def send_packet(self, message, destination):
         """Method to send a message to a destination."""
