@@ -53,8 +53,9 @@ class _SimulationNode(_Node):
     def _send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
         # Pass the message to the routing protocol
-        yield self.env.process(self.routing_protocol.send_packet(message,
-                                                                 destination))
+        yield self.env.process(self.routing_protocol.add_to_output_queue(
+            message,
+            destination))
 
     def receive_message(self, message):
         """Receive a message from another node."""
