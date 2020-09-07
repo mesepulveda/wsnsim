@@ -17,10 +17,9 @@ def test_1():
     # Show information about the network
     network.display_summary()
     # Create simulation
-    simulation = Simulation(network, protocol_stack='default')
-    # Send a message
-    for node in simulation.network.nodes:
-        node.send_message('Hello', 'broadcast')
+    simulation = Simulation(network, routing_protocol='min-hop')
+    # Run it
+    simulation.run(60)
 
 
 if __name__ == '__main__':

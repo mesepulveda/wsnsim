@@ -1,4 +1,7 @@
 """Everything related with the simulation of a node."""
+import random
+import simpy
+
 from .protocol_stack.routing.min_hop import MinHopRouting, MinHopRoutingSink
 
 
@@ -36,58 +39,61 @@ class SinkNode(_Node):
 class _SimulationNode(_Node):
     """Extends Node class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol):
+    def __init__(self, address, name, routing_protocol, send_data_function,
+                 env: simpy.Environment):
         super().__init__(address, name)
-        self.routing_protocol = routing_protocol(address)
+        self._access_function = send_data_function
+        self.routing_protocol = routing_protocol(address, self._radio, env)
+        self.env = env
+        self.env.process(self._main_routine())
 
-    def setup_medium_access(self, access_function):
-        """Associates the medium access function with the node."""
-        self.routing_protocol.setup_access_function(access_function)
+    def _radio(self, data):
+        yield self.env.process(self._access_function(data))
 
-    def send_message(self, message, destination):
+    def _send_message(self, message, destination):
         """Sends a message to sink or neighbour nodes."""
-        return self.routing_protocol.send_packet(message, destination)
+        # Pass the message to the routing protocol
+        yield self.env.process(self.routing_protocol.add_to_output_queue(
+            message,
+            destination))
 
     def receive_message(self, message):
         """Receive a message from another node."""
-        return self.routing_protocol.receive_packet(message)
+        # Pass the message to the routing protocol in order to analyze it
+        yield self.env.process(self.routing_protocol.receive_packet(message))
 
-    def clear_simulation(self):
-        """Clears logs of simulations."""
-        # todo: implement it
-        pass
+    def _main_routine(self):
+        """Main routine of the nodes."""
+        # random delay between 0 and 10
+        yield self.env.timeout(random.random() * 10)
+        print(round(self.env.now, 2), self.name, 'is awake')
+        yield self.env.timeout(15)  # Wait 15 second until every node wakes up
+        yield self.env.process(self._send_message('Hello', 'broadcast'))
 
 
 class SimulationSensingNode(_SimulationNode, SensingNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol):
-        super().__init__(address, name, routing_protocol)
-
-    def clear_simulation(self):
-        """Clears logs of simulations."""
-        # todo: implement it
-        super().clear_simulation()
-        pass
+    def __init__(self, address, name, routing_protocol, send_data_function,
+                 env: simpy.Environment):
+        super().__init__(address, name, routing_protocol, send_data_function,
+                         env)
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol):
-        super().__init__(address, name, routing_protocol)
-
-    def clear_simulation(self):
-        """Clears logs of simulations."""
-        # todo: implement it
-        super().clear_simulation()
-        pass
+    def __init__(self, address, name, routing_protocol, send_data_function,
+                 env: simpy.Environment):
+        super().__init__(address, name, routing_protocol, send_data_function,
+                         env)
 
 
-def convert_to_simulation_nodes(regular_nodes, routing_stack_name):
+def convert_to_simulation_nodes(regular_nodes, routing_protocol,
+                                send_data_function, env):
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
-    if routing_stack_name == 'min-hop':
+    if routing_protocol == 'min-hop':
         routing_sensing_node = MinHopRouting
         routing_sink_node = MinHopRoutingSink
     else:  # Default routing protocol
@@ -99,11 +105,15 @@ def convert_to_simulation_nodes(regular_nodes, routing_stack_name):
         if isinstance(node, SensingNode):
             simulation_node = SimulationSensingNode(address,
                                                     name,
-                                                    routing_sensing_node)
+                                                    routing_sensing_node,
+                                                    send_data_function,
+                                                    env)
         elif isinstance(node, SinkNode):
             simulation_node = SimulationSinkNode(address,
                                                  name,
-                                                 routing_sink_node)
+                                                 routing_sink_node,
+                                                 send_data_function,
+                                                 env)
         else:
             raise AttributeError('Class of node is not correct')
         simulation_nodes.append(simulation_node)

@@ -1,8 +1,9 @@
 """Simulation related code."""
 import random
+import simpy
 
 from simulator.link import convert_to_simulation_links
-from simulator.medium import Medium, setup_nodes_medium_access
+from simulator.medium import Medium
 from simulator.network import SimulationNetwork
 from simulator.node import convert_to_simulation_nodes
 
@@ -12,32 +13,20 @@ DEFAULT_SEED = 290696
 class Simulation:
     """Manage a simulation."""
 
-    def __init__(self, network, protocol_stack):
-        self.protocol_stack = protocol_stack
-        if self.protocol_stack == 'default':
-            routing_stack = 'min-hop'
+    def __init__(self, network, routing_protocol):
+        self.env = simpy.Environment()
+        self.medium = Medium(self.env)
+        send_data_function = self.medium.send_data_to_medium
         simulation_nodes = convert_to_simulation_nodes(network.nodes,
-                                                       routing_stack)
+                                                       routing_protocol,
+                                                       send_data_function,
+                                                       self.env)
         simulation_links = convert_to_simulation_links(network.links,
                                                        simulation_nodes)
-        self.medium = Medium(simulation_links)
-        setup_nodes_medium_access(simulation_nodes,
-                                  self.medium.send_data_to_medium)
+        self.medium.setup_links(simulation_links)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
 
     def run(self, time, seed_value=DEFAULT_SEED):
         """Runs the simulation for a given time in seconds."""
-        self.clean_simulation(seed_value)
-        pass
-
-    def clear_simulation(self, seed_value=None):
-        """Clears everything before a simulation is run."""
-        # Clear logging variables of network, nodes and links
-        self.network.clear_simulation()
-        for node in self.network.nodes:
-            node.clear_simulation()
-        for link in self.network.links:
-            link.clear_simulation()
-        # Restart the seed
-        if seed_value:
-            random.seed(seed_value)
+        random.seed(seed_value)  # Restart the seed
+        self.env.run(until=time)
