@@ -25,7 +25,6 @@ class _MinHopRouting:
 
     def add_to_output_queue(self, message, destination):
         with self._output_queue.request() as req:
-            print(round(self.env.now, 2), 'message', message, 'arrived')
             yield req
             yield self.env.process(self.send_packet(message, destination))
 
