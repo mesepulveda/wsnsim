@@ -25,16 +25,18 @@ class _MinHopRouting:
 
     def add_to_output_queue(self, message, destination):
         with self._output_queue.request() as req:
+            print(round(self.env.now, 2), self.address, 'Message:', message,
+                  'entered output queue')
             yield req
-            yield self.env.process(self.send_packet(message, destination))
+            yield self.env.process(self._send_packet(message, destination))
 
-    def send_packet(self, message, destination):
+    def _send_packet(self, message, destination):
         """Method to send a message to a destination."""
         next_hop_address = self._choose_next_hop_address(destination)
         if next_hop_address is None:
             # First we need to discover neighbours
             self._find_neighbours()
-            yield self.env.process(self.send_packet(message, destination))
+            yield self.env.process(self._send_packet(message, destination))
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         print(round(self.env.now, 2), '{0} sending: {1}'.format(self.address, data))
         yield self.env.process(self._send_data_to_medium(data))
@@ -44,7 +46,7 @@ class _MinHopRouting:
         origin_address, _, data = get_components_of_message(message)
         self.neighbours.add(origin_address)
         if data != 'ACK':
-            yield self.env.process(self.send_packet('ACK', origin_address))
+            yield self.env.process(self._send_packet('ACK', origin_address))
 
     def _choose_next_hop_address(self, destination):
         """Returns one or a list of nodes to route data."""

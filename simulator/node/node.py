@@ -39,10 +39,10 @@ class SinkNode(_Node):
 class _SimulationNode(_Node):
     """Extends Node class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol, send_data_function,
+    def __init__(self, address, name, routing_protocol, access_function,
                  env: simpy.Environment):
         super().__init__(address, name)
-        self._access_function = send_data_function
+        self._access_function = access_function
         self.routing_protocol = routing_protocol(address, self._radio, env)
         self.env = env
         self.env.process(self._main_routine())
@@ -68,24 +68,26 @@ class _SimulationNode(_Node):
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
         yield self.env.timeout(15)  # Wait 15 second until every node wakes up
-        yield self.env.process(self._send_message('Hello', 'broadcast'))
+        for i in range(3):
+            self.env.process(self._send_message(f'Hello N.{i}', 'broadcast'))
+            yield self.env.timeout(1)
 
 
 class SimulationSensingNode(_SimulationNode, SensingNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol, send_data_function,
+    def __init__(self, address, name, routing_protocol, access_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, send_data_function,
+        super().__init__(address, name, routing_protocol, access_function,
                          env)
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address, name, routing_protocol, send_data_function,
+    def __init__(self, address, name, routing_protocol, access_function,
                  env: simpy.Environment):
-        super().__init__(address, name, routing_protocol, send_data_function,
+        super().__init__(address, name, routing_protocol, access_function,
                          env)
 
 
