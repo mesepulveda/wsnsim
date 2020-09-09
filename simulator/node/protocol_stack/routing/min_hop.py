@@ -1,7 +1,7 @@
 """Implements min-hop routing protocol/metric."""
 from typing import Callable, Generator, Any, Optional
 
-from simpy import Environment, Event, Resource
+from simpy import Environment, Event
 
 from simulator.auxiliary_functions import get_components_of_message
 from ..routing.base_routing_protocol import RoutingProtocol
@@ -22,8 +22,6 @@ class _MinHopRouting(RoutingProtocol):
                  env: Environment) -> None:
         super().__init__(address, radio, env)
         self.neighbours = set()
-        # noinspection PyArgumentEqualDefault
-        self._output_queue = Resource(env, capacity=1)
 
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
