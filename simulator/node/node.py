@@ -66,10 +66,10 @@ class _SimulationNode(_Node):
             message,
             destination))
 
-    def receive_message(self, message: str) -> Generator[Event, Any, Any]:
+    def receive_message(self, message: str) -> None:
         """Receive a message from another node."""
         # Pass the message to the routing protocol in order to analyze it
-        yield self.env.process(self.routing_protocol.receive_packet(message))
+        self.routing_protocol.receive_packet(message)
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
@@ -77,9 +77,7 @@ class _SimulationNode(_Node):
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
         yield self.env.timeout(15)  # Wait 15 second until every node wakes up
-        for i in range(3):
-            self.env.process(self._send_message(f'Hello N.{i}', 'broadcast'))
-            yield self.env.timeout(1)
+        self.env.process(self._send_message('Hello', 'broadcast'))
 
 
 class SimulationSensingNode(_SimulationNode, SensingNode):

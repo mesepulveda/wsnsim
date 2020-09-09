@@ -25,4 +25,4 @@ class Medium:
         for link in links:
             destination_node = link.get_destination(origin_address)
             yield self.env.timeout(link.get_delay())
-            self.env.process(destination_node.receive_message(data))
+            destination_node.receive_message(data)
