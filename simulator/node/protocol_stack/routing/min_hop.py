@@ -25,9 +25,6 @@ class _MinHopRouting(RoutingProtocol):
         # noinspection PyArgumentEqualDefault
         self._output_queue = Resource(env, capacity=1)
 
-    def _send_data_to_medium(self, data: str) -> Generator[Event, Any, Any]:
-        yield self.env.process(self._radio(data))
-
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
@@ -48,18 +45,23 @@ class _MinHopRouting(RoutingProtocol):
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         print(round(self.env.now, 2),
               '{0} sending: {1}'.format(self.address, data))
-        yield self.env.process(self._send_data_to_medium(data))
+        yield self.env.process(self._radio(data))
 
-    def receive_packet(self, message: str) -> Generator[Event, Any, Any]:
+    def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
         print(round(self.env.now, 2),
               '{0} received: {1}'.format(self.address, message))
-        origin_address, _, data = get_components_of_message(message)
-        self.neighbours.add(origin_address)
+        origin_address, destination_address, _ = \
+            get_components_of_message(message)
+        if origin_address not in self.neighbours:
+            print(round(self.env.now, 2),
+                  f'Node {origin_address} is new neighbour')
+            self.neighbours.add(origin_address)
+            self.env.process(self.add_to_output_queue('Hello', 'broadcast'))
 
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
         """Returns one or a list of nodes to route data."""
-        if destination == 'broadcast':
+        if destination == 'broadcast' or destination == '':
             return ''
         elif destination in self.neighbours:
             return destination
@@ -71,7 +73,7 @@ class _MinHopRouting(RoutingProtocol):
     def _find_neighbours(self) -> None:
         """Method to discover neighbours."""
         # send 'hello'
-        self._send_data_to_medium('{},{},{}'.format(self.address, '', 'hello'))
+        self._radio('{},{},{}'.format(self.address, '', 'hello'))
         # wait until the neighbours answer...
 
 

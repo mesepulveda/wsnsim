@@ -4,7 +4,8 @@ from typing import Iterable, Generator, Any
 from simpy import Environment, Event
 
 from simulator.auxiliary_functions import get_components_of_message
-from simulator.link import SimulationLink, get_all_links_of_node
+from simulator.link import SimulationLink, get_all_links_of_node, \
+    get_link_between_nodes
 
 
 class Medium:
@@ -20,9 +21,21 @@ class Medium:
 
     def send_data_to_medium(self, data: str) -> Generator[Event, Any, Any]:
         """Sends the data to the medium in order to reach other nodes."""
-        origin_address, _, _ = get_components_of_message(data)
-        links = get_all_links_of_node(origin_address, self._links)
-        for link in links:
-            destination_node = link.get_destination(origin_address)
+        origin_address, destination_address, _ = \
+            get_components_of_message(data)
+        if destination_address == '':
+            # In case of broadcast, the messages are not delayed
+            links = get_all_links_of_node(origin_address, self._links)
+            for link in links:
+                destination = link.get_destination(origin_address)
+                # noinspection PyArgumentEqualDefault
+                yield self.env.timeout(0)
+                destination.receive_message(data)
+        else:
+            # In case of message to specific node, the message is delayed
+            link = get_link_between_nodes(origin_address,
+                                          destination_address, self._links)
+            destination = link.get_destination(origin_address)
             yield self.env.timeout(link.get_delay())
-            destination_node.receive_message(data)
+            destination.receive_message(data)
+
