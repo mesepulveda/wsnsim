@@ -69,3 +69,14 @@ def get_all_links_of_node(node_address: str, links: Iterable[SimulationLink]) \
         if node_address in link_addresses:
             node_links.append(link)
     return node_links
+
+
+def get_link_between_nodes(node1_address: str, node2_address: str,
+                           links: Iterable[SimulationLink]) -> SimulationLink:
+    """Returns the link between two nodes."""
+    for link in links:
+        link_node_addresses = {node.address for node in link.nodes}
+        if link_node_addresses == {node1_address, node2_address}:
+            return link
+    raise Exception(f"Link between node {node1_address} and "
+                    f"node {node2_address} does not exist.")
