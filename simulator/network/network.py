@@ -1,16 +1,20 @@
 """Everything related with the network."""
-from ..auxiliary_functions import print_with_asterisks
+from typing import Iterable
+
+from simulator.auxiliary_functions import print_with_asterisks
+from simulator.node import Node, SimulationNode
+from simulator.link import Link, SimulationLink
 
 
 class Network:
     """Object that represent a Wireless Sensor Network."""
 
-    def __init__(self, nodes, links):
+    def __init__(self, nodes: Iterable[Node], links: Iterable[Link]) -> None:
         self.nodes = sorted(nodes, key=lambda node: node.address)
         self.links = links
 
     @print_with_asterisks
-    def display_summary(self):
+    def display_summary(self) -> None:
         """Shows a description of the network."""
         print('>> Network summary')
         print('> Nodes [node address, node name]:')
@@ -25,5 +29,7 @@ class Network:
 class SimulationNetwork(Network):
     """Extends Network class in order to simulate."""
 
-    def __init__(self, simulation_nodes, simulation_links):
+    def __init__(self,
+                 simulation_nodes: Iterable[SimulationNode],
+                 simulation_links: Iterable[SimulationLink]):
         super().__init__(simulation_nodes, simulation_links)

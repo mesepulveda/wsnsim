@@ -4,7 +4,7 @@ import simpy
 
 from simulator.link import convert_to_simulation_links
 from simulator.medium import Medium
-from simulator.network import SimulationNetwork
+from simulator.network import Network, SimulationNetwork
 from simulator.node import convert_to_simulation_nodes
 
 DEFAULT_SEED = 290696
@@ -13,7 +13,7 @@ DEFAULT_SEED = 290696
 class Simulation:
     """Manage a simulation."""
 
-    def __init__(self, network, routing_protocol):
+    def __init__(self, network: Network, routing_protocol: str) -> None:
         self.env = simpy.Environment()
         self.medium = Medium(self.env)
         send_data_function = self.medium.send_data_to_medium
@@ -26,7 +26,7 @@ class Simulation:
         self.medium.setup_links(simulation_links)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
 
-    def run(self, time, seed_value=DEFAULT_SEED):
+    def run(self, time: float, seed_value: int = DEFAULT_SEED) -> None:
         """Runs the simulation for a given time in seconds."""
         random.seed(seed_value)  # Restart the seed
         self.env.run(until=time)
