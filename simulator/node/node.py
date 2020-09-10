@@ -74,8 +74,7 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
-        super().__init__(address, name, routing_protocol, access_function,
-                         env)
+        super().__init__(address, name, routing_protocol, access_function, env)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
@@ -84,10 +83,10 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
         # random delay between 0 and 10
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
-        yield self.env.timeout(15)  # Wait 15 second until every node wakes up
-        self.env.process(self._send_message('Hello', 'broadcast'))
-        yield self.env.timeout(1)
-        self.env.process(self._send_message('Hello', destination))
+        # yield self.env.timeout(15)  # Wait 15 second until every node wakes up
+        # self.env.process(self._send_message('Hello', 'broadcast'))
+        # yield self.env.timeout(1)
+        # self.env.process(self._send_message('Hello', destination))
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
@@ -103,10 +102,10 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
-        destination = '0'
         # random delay between 0 and 10
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
+        self.env.process(self.routing_protocol.setup())
 
 
 SimulationNode = Union[SimulationSinkNode, SimulationSensingNode]

@@ -13,6 +13,31 @@ def _find_min_hop_neighbour(neighbours):
         return neighbours[0]
 
 
+class Neighbour:
+    """Definition of a neighbour in the context of min-hop routing."""
+
+    def __init__(self, address: str, hop_count: int) -> None:
+        self.address = address
+        self.hop_count = hop_count
+
+    def update_hop_count(self, hop_count: int) -> None:
+        """Updates the hop count, if corresponds, of a neighbour."""
+        if hop_count < self.hop_count:
+            self.hop_count = hop_count
+
+    def __repr__(self):
+        return f'{self.address}, {self.hop_count}'
+
+    def __str__(self):
+        return f'{self.address}, {self.hop_count}'
+
+    def __eq__(self, other):
+        return other.address == self.address
+
+    def __hash__(self):
+        return hash(self.address)
+
+
 class _MinHopRouting(RoutingProtocol):
     """Private base class for the min-hop routing."""
 
@@ -21,7 +46,13 @@ class _MinHopRouting(RoutingProtocol):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
-        self.neighbours = set()
+        self._neighbours = set()
+
+    def update_hop_count(self, hop_count: int) -> None:
+        """Updates the node hop count, adding 1 to the neighbour count."""
+        tentative_hop_count = hop_count + 1
+        if tentative_hop_count < self.hop_count:
+            self.hop_count = tentative_hop_count
 
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
@@ -49,30 +80,28 @@ class _MinHopRouting(RoutingProtocol):
         """Method called when a packet arrives."""
         print(round(self.env.now, 2),
               '{0} received: {1}'.format(self.address, message))
-        origin_address, destination_address, _ = \
+        origin_address, destination_address, info = \
             get_components_of_message(message)
-        if origin_address not in self.neighbours:
+        new_neighbour_hop_count = int(info.split('+')[1])
+        new_neighbour = Neighbour(origin_address, new_neighbour_hop_count)
+        if new_neighbour not in self._neighbours:
+
             print(round(self.env.now, 2),
-                  f'Node {origin_address} is new neighbour')
-            self.neighbours.add(origin_address)
-            self.env.process(self.add_to_output_queue('Hello', 'broadcast'))
+                  f'Node {origin_address} is new neighbour with hop '
+                  f'count {new_neighbour_hop_count}')
+            self._neighbours.add(new_neighbour)
+            self.update_hop_count(new_neighbour_hop_count)
+            self.env.process(self.add_to_output_queue(
+                f'Hello+{self.hop_count}', 'broadcast'))
 
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
         """Returns one or a list of nodes to route data."""
         if destination == 'broadcast' or destination == '':
             return ''
-        elif destination in self.neighbours:
-            return destination
         elif destination == 'sink':
-            min_hop_neighbour = _find_min_hop_neighbour(self.neighbours)
+            min_hop_neighbour = _find_min_hop_neighbour(self._neighbours)
             return min_hop_neighbour.address
         return None
-
-    def _find_neighbours(self) -> None:
-        """Method to discover neighbours."""
-        # send 'hello'
-        self._radio('{},{},{}'.format(self.address, '', 'hello'))
-        # wait until the neighbours answer...
 
 
 class MinHopRouting(_MinHopRouting):
@@ -83,6 +112,7 @@ class MinHopRouting(_MinHopRouting):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
+        self.hop_count = 99
 
 
 class MinHopRoutingSink(_MinHopRouting):
@@ -93,3 +123,9 @@ class MinHopRoutingSink(_MinHopRouting):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
+        self.hop_count = 0
+
+    def setup(self) -> Generator[Event, Any, Any]:
+        """Initiates the neighbours discovery with hop count."""
+        yield self.env.process(self.add_to_output_queue(
+            f'Hello+{self.hop_count}', 'broadcast'))

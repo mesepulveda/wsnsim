@@ -25,3 +25,7 @@ class RoutingProtocol:
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         pass
+
+    def setup(self) -> Generator[Event, Any, Any]:
+        """Any setup code must go here."""
+        pass
