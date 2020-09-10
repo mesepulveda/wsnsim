@@ -26,10 +26,10 @@ class Neighbour:
             self.hop_count = hop_count
 
     def __repr__(self):
-        return f'{self.address}, {self.hop_count}'
+        return f'(Address: {self.address}, Hops: {self.hop_count})'
 
     def __str__(self):
-        return f'{self.address}, {self.hop_count}'
+        return f'(Address: {self.address}, Hops: {self.hop_count})'
 
     def __eq__(self, other):
         return other.address == self.address
@@ -46,20 +46,25 @@ class _MinHopRouting(RoutingProtocol):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
-        self._neighbours = set()
+        self.hop_count = 99
+        self._neighbours = dict()
 
-    def update_hop_count(self, hop_count: int) -> None:
+    def update_hop_count(self, hop_count: int) -> bool:
         """Updates the node hop count, adding 1 to the neighbour count."""
         tentative_hop_count = hop_count + 1
         if tentative_hop_count < self.hop_count:
             self.hop_count = tentative_hop_count
+            print(round(self.env.now, 2), self.address, 'hop count updated to',
+                  self.hop_count)
+            return True
+        return False
 
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         with self._output_queue.request() as req:
-            print(round(self.env.now, 2), self.address, 'Message:', message,
-                  'entered output queue')
+            # print(round(self.env.now, 2), self.address, 'Message:', message,
+            #       'entered output queue')
             yield req
             yield self.env.process(self._send_packet(message, destination))
 
@@ -84,15 +89,31 @@ class _MinHopRouting(RoutingProtocol):
             get_components_of_message(message)
         new_neighbour_hop_count = int(info.split('+')[1])
         new_neighbour = Neighbour(origin_address, new_neighbour_hop_count)
-        if new_neighbour not in self._neighbours:
-
-            print(round(self.env.now, 2),
+        if new_neighbour.address not in self._neighbours:
+            print(round(self.env.now, 2), self.address,
                   f'Node {origin_address} is new neighbour with hop '
                   f'count {new_neighbour_hop_count}')
-            self._neighbours.add(new_neighbour)
+            self._neighbours[new_neighbour.address] = new_neighbour
             self.update_hop_count(new_neighbour_hop_count)
             self.env.process(self.add_to_output_queue(
                 f'Hello+{self.hop_count}', 'broadcast'))
+            return
+        # In case the neighbour exists, check if the hop count is the same
+        # if it is the same, nothing must be done, if it is different, must
+        # be updated, check if the own hop count changes and, if it does change
+        # should be shared
+        old_version_neighbour = self._neighbours[new_neighbour.address]
+        if old_version_neighbour.hop_count != new_neighbour.hop_count:
+            self._neighbours[new_neighbour.address] = new_neighbour
+            print(round(self.env.now, 2), self.address,
+                  f'Node {origin_address} is updated neighbour with hop '
+                  f'count {new_neighbour_hop_count}')
+            new_value = self.update_hop_count(new_neighbour_hop_count)
+            if new_value:
+                # Share new hop count
+                self.env.process(self.add_to_output_queue(
+                    f'Hello+{self.hop_count}', 'broadcast'))
+
 
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
         """Returns one or a list of nodes to route data."""
