@@ -105,6 +105,8 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
         # random delay between 0 and 10
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
+        # wait for 10s in order to wait for the other nodes to wake up
+        yield self.env.timeout(10)
         self.env.process(self.routing_protocol.setup())
 
 
