@@ -83,10 +83,11 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
         # random delay between 0 and 10
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
-        # yield self.env.timeout(15)  # Wait 15 second until every node wakes up
-        # self.env.process(self._send_message('Hello', 'broadcast'))
-        # yield self.env.timeout(1)
-        # self.env.process(self._send_message('Hello', destination))
+        yield self.env.timeout(60)  # Wait one minute before begin sensing
+        while True:
+            # Sensing every 15 minutes
+            self._send_message('Measuring X', 'sink')
+            yield self.env.timeout(15 * 60)
 
 
 class SimulationSinkNode(_SimulationNode, SinkNode):
