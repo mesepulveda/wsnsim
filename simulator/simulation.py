@@ -30,6 +30,3 @@ class Simulation:
         """Runs the simulation for a given time in seconds."""
         random.seed(seed_value)  # Restart the seed
         self.env.run(until=time)
-        for node in self.network.nodes:
-            print(node)
-            print(node.routing_protocol._neighbours)
