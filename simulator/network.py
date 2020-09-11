@@ -8,7 +8,7 @@ from .link import Link, SimulationLink
 
 
 class Network:
-    """Object that represent a Wireless Sensor Network."""
+    """Represents a Wireless Sensor Network formed by nodes and links."""
 
     def __init__(self, nodes: Iterable[Node], links: Iterable[Link]) -> None:
         self.nodes = sorted(nodes, key=lambda node: node.address)
@@ -20,11 +20,10 @@ class Network:
         print('>> Network summary')
         print('> Nodes [node address, node name]:')
         for node in self.nodes:
-            print(node)
-        print()
+            print(f'{node.address}, {node.name}')
         print('> Links [address node 1, address node 2]:')
         for link in self.links:
-            print(link)
+            print(f'{link.nodes[0].address}, {link.nodes[1].address}')
 
 
 class SimulationNetwork(Network):
