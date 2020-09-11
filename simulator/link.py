@@ -19,11 +19,19 @@ class Link:
         """Returns a realization of delay value of the link."""
         return self._delay_function()
 
+    def get_destination(self, origin_address: str) -> Node:
+        """Returns the destination node of the link from the origin address."""
+        origin_node = [n for n in self.nodes if n.address == origin_address]
+        if len(origin_node) != 1:
+            raise Exception('Node is not part of the link.')
+        destination_node = (set(self.nodes) - set(origin_node)).pop()
+        return destination_node
+
     def __repr__(self) -> str:
-        return '{0}, {1}'.format(*[node.address for node in self.nodes])
+        return f'{self.nodes[0].address}, {self.nodes[0].address}'
 
     def __str__(self) -> str:
-        return '{0}, {1}'.format(*[node.address for node in self.nodes])
+        return f'{self.nodes[0].address}, {self.nodes[0].address}'
 
 
 class SimulationLink(Link):
@@ -32,19 +40,6 @@ class SimulationLink(Link):
     def __init__(self, node_1: SimulationNode, node_2: SimulationNode,
                  delay_function: Callable[[], float]) -> None:
         super().__init__(node_1, node_2, delay_function)
-        self.nodes = sorted([node_1, node_2], key=lambda node: node.address)
-        self._delay_function = delay_function
-
-    def get_destination(self, origin_address: str) -> SimulationNode:
-        """Returns the destination node of the link from the origin address."""
-        origin_node = None
-        for node in self.nodes:
-            if node.address == origin_address:
-                origin_node = node
-        if origin_node is None:
-            raise Exception('Node is not part of the link.')
-        destination_node = (set(self.nodes) - {origin_node}).pop()
-        return destination_node
 
 
 def convert_to_simulation_links(links: Iterable[Link],
@@ -56,8 +51,7 @@ def convert_to_simulation_links(links: Iterable[Link],
         node_1, node_2 = get_equivalent_simulation_node(link.nodes,
                                                         simulation_nodes)
         # noinspection PyProtectedMember
-        simulation_link = \
-            SimulationLink(node_1, node_2, link._delay_function)
+        simulation_link = SimulationLink(node_1, node_2, link._delay_function)
         simulation_links.append(simulation_link)
     return simulation_links
 

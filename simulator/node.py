@@ -25,6 +25,12 @@ class _Node:
     def __str__(self):
         return '{0}, {1}'.format(self.address, self.name)
 
+    def __eq__(self, other):
+        return self.address == other.address
+
+    def __hash__(self):
+        return hash(self.address)
+
 
 class SensingNode(_Node):
     """Defines attributes and methods of a regular sensing (not sink) node."""
