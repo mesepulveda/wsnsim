@@ -1,7 +1,9 @@
 """Everything related with the simulation of a link."""
+
 from typing import Callable, Iterable
-from simulator.auxiliary_functions import ensure_positive_value
-from simulator.node import Node, SimulationNode, get_equivalent_simulation_node
+
+from .auxiliary_functions import ensure_positive_value
+from .node import Node, SimulationNode, get_equivalent_simulation_node
 
 
 class Link:

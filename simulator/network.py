@@ -1,9 +1,10 @@
 """Everything related with the network."""
+
 from typing import Iterable
 
-from simulator.auxiliary_functions import print_with_asterisks
-from simulator.node import Node, SimulationNode
-from simulator.link import Link, SimulationLink
+from .auxiliary_functions import print_with_asterisks
+from .node import Node, SimulationNode
+from .link import Link, SimulationLink
 
 
 class Network:

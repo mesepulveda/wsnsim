@@ -1,11 +1,11 @@
 """Implements the wireless medium."""
+
 from typing import Iterable, Generator, Any
 
 from simpy import Environment, Event
 
-from simulator.auxiliary_functions import get_components_of_message
-from simulator.link import SimulationLink, get_all_links_of_node, \
-    get_link_between_nodes
+from .auxiliary_functions import get_components_of_message
+from .link import SimulationLink, get_all_links_of_node, get_link_between_nodes
 
 
 class Medium:

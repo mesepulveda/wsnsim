@@ -1,4 +1,5 @@
 """Some functions that might be useful in other files."""
+
 from typing import Callable, Iterable
 
 

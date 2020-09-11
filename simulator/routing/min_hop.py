@@ -1,11 +1,12 @@
 """Implements min-hop routing protocol/metric."""
+
 from typing import Callable, Generator, Any, Optional, Dict
 from random import choice
 
 from simpy import Environment, Event
 
-from simulator.auxiliary_functions import get_components_of_message
-from ..routing.base_routing_protocol import RoutingProtocol
+from ..auxiliary_functions import get_components_of_message
+from .base_routing_protocol import RoutingProtocol
 
 
 class Neighbour:

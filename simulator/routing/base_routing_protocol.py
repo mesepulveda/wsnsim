@@ -1,4 +1,5 @@
 """This module implements a base structure for every routing protocol."""
+
 from typing import Callable, Generator, Any
 
 from simpy import Event, Environment, Resource

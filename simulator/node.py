@@ -1,11 +1,12 @@
 """Everything related with the simulation of a node."""
+
 from typing import Union, Optional, Callable, Iterable, Type, Generator, Any
-import random
+from random import random
 
 from simpy import Environment, Event
 
-from simulator.routing import MinHopRouting, MinHopRoutingSink
-from simulator.routing import RoutingProtocol
+from .routing import MinHopRouting, MinHopRoutingSink
+from .routing import RoutingProtocol
 
 
 class _Node:
@@ -80,7 +81,7 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
         # random delay between 0 and 10
-        yield self.env.timeout(random.random() * 10)
+        yield self.env.timeout(random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
         yield self.env.timeout(60)  # Wait one minute before begin sensing
         while True:
@@ -107,7 +108,7 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
         # random delay between 0 and 10
-        yield self.env.timeout(random.random() * 10)
+        yield self.env.timeout(random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
         # wait for 10s in order to wait for the other nodes to wake up
         yield self.env.timeout(10)
