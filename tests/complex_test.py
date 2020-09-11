@@ -42,7 +42,7 @@ def test_1():
     # Create simulation
     simulation = Simulation(network, routing_protocol='min-hop')
     # Run it
-    simulation.run(60)
+    simulation.run(20*60)
 
 
 if __name__ == '__main__':
