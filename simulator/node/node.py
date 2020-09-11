@@ -79,7 +79,6 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
-        destination = '0'
         # random delay between 0 and 10
         yield self.env.timeout(random.random() * 10)
         print(round(self.env.now, 2), self.name, 'is awake')
