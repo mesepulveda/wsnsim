@@ -37,7 +37,5 @@ def get_components_of_message(data: str) -> Iterable[str]:
     """Returns the three components (origin, destination, message)
     of a data packet."""
     data_list = data.split(',')
-    origin = data_list[0]
-    destination = data_list[1]
-    message = data_list[2]
+    origin, destination, message = data_list
     return origin, destination, message
