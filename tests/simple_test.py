@@ -6,7 +6,7 @@ from simulator import SinkNode, SensingNode, Link, Network, Simulation
 def test_1():
     # Create two nodes
     sink = SinkNode('0', 'sink')
-    sensing = SensingNode('1', 'node 1')
+    sensing = SensingNode('1')
     # Create one link
     link = Link(sink, sensing, lambda: 5)
     # Create network
