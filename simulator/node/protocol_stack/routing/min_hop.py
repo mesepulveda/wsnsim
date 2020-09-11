@@ -58,8 +58,6 @@ class _MinHopRouting(RoutingProtocol):
         tentative_hop_count = hop_count + 1
         if tentative_hop_count < self.hop_count:
             self.hop_count = tentative_hop_count
-            # print(round(self.env.now, 2), self.address, 'hop count updated to',
-            #       self.hop_count)
             return True
         return False
 
@@ -88,9 +86,6 @@ class _MinHopRouting(RoutingProtocol):
         new_neighbour_hop_count = int(info.split('+')[1])
         new_neighbour = Neighbour(origin_address, new_neighbour_hop_count)
         if new_neighbour.address not in self._neighbours:
-            # print(round(self.env.now, 2), self.address,
-            #       f'Node {origin_address} is new neighbour with hop '
-            #       f'count {new_neighbour_hop_count}')
             self._neighbours[new_neighbour.address] = new_neighbour
             self.update_hop_count(new_neighbour_hop_count)
             self.env.process(self.add_to_output_queue(
