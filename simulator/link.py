@@ -19,7 +19,17 @@ class Link:
         """Returns a realization of delay value of the link."""
         return self._delay_function()
 
-    def get_destination(self, origin_address: str) -> Node:
+
+class SimulationLink(Link):
+    """Extends Link class in order to simulate."""
+
+    def __init__(self, node_1: SimulationNode, node_2: SimulationNode,
+                 delay_function: Callable[[], float]) -> None:
+        super().__init__(node_1, node_2, delay_function)
+        self.nodes = sorted([node_1, node_2], key=lambda node: node.address)
+        self._delay_function = delay_function
+
+    def get_destination(self, origin_address: str) -> SimulationNode:
         """Returns the destination node of the link from the origin address."""
         origin_node = [n for n in self.nodes if n.address == origin_address]
         if len(origin_node) != 1:
@@ -32,14 +42,6 @@ class Link:
 
     def __str__(self) -> str:
         return f'{self.nodes[0].address}, {self.nodes[0].address}'
-
-
-class SimulationLink(Link):
-    """Extends Link class in order to simulate."""
-
-    def __init__(self, node_1: SimulationNode, node_2: SimulationNode,
-                 delay_function: Callable[[], float]) -> None:
-        super().__init__(node_1, node_2, delay_function)
 
 
 def convert_to_simulation_links(links: Iterable[Link],
