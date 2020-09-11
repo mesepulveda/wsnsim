@@ -5,11 +5,9 @@ from simulator import SinkNode, SensingNode, Link, Network, Simulation
 
 def test_1():
     """
-       1 - 3
-      /    |
-     0     |
-      \    |
-       2 - 4 - 5
+         1 - 3
+       /     |
+     0 - 2 - 4 - 5
     """
     # Create nodes
     sink = SinkNode('0', 'sink')
