@@ -38,4 +38,3 @@ class Medium:
             destination = link.get_destination(origin_address)
             yield self.env.timeout(link.get_delay())
             destination.receive_message(data)
-
