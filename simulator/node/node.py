@@ -86,7 +86,11 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
         yield self.env.timeout(60)  # Wait one minute before begin sensing
         while True:
             # Sensing every 15 minutes
-            self._send_message('Measuring X', 'sink')
+            self.env.process(
+                self._send_message(f'{self.address}/'       # Node id
+                                   f'X/'                    # Measurement
+                                   f'{self.env.now:.2f}',  # Timestamp
+                                   'sink'))
             yield self.env.timeout(15 * 60)
 
 
