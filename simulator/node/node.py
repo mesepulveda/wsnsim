@@ -4,8 +4,8 @@ import random
 
 from simpy import Environment, Event
 
-from .protocol_stack.routing.min_hop import MinHopRouting, MinHopRoutingSink
-from .protocol_stack.routing.base_routing_protocol import RoutingProtocol
+from simulator.routing import MinHopRouting, MinHopRoutingSink
+from simulator.routing import RoutingProtocol
 
 
 class _Node:
