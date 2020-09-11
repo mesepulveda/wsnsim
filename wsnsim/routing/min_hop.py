@@ -66,8 +66,6 @@ class _MinHopRouting(RoutingProtocol):
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         with self._output_queue.request() as req:
-            # print(round(self.env.now, 2), self.address, 'Message:', message,
-            #       'entered output queue')
             yield req
             yield self.env.process(self._send_packet(message, destination))
 
