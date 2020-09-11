@@ -1,16 +1,11 @@
 """Implements min-hop routing protocol/metric."""
-from typing import Callable, Generator, Any, Optional
+from typing import Callable, Generator, Any, Optional, Dict
+from random import choice
 
 from simpy import Environment, Event
 
 from simulator.auxiliary_functions import get_components_of_message
 from ..routing.base_routing_protocol import RoutingProtocol
-
-
-def _find_min_hop_neighbour(neighbours):
-    # todo: complete it properly
-    if neighbours:
-        return neighbours[0]
 
 
 class Neighbour:
@@ -36,6 +31,15 @@ class Neighbour:
 
     def __hash__(self):
         return hash(self.address)
+
+
+def _find_min_hop_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
+    """Returns the address of the selected forwarder with min-hop to sink."""
+    neighbours = neighbours_dict.values()
+    min_hop = min({neighbour.hop_count for neighbour in neighbours})
+    min_hop_neighbours = [n for n in neighbours if n.hop_count == min_hop]
+    neighbour_selected = choice(min_hop_neighbours)
+    return neighbour_selected.address
 
 
 class _MinHopRouting(RoutingProtocol):
@@ -73,20 +77,14 @@ class _MinHopRouting(RoutingProtocol):
         """Method to send a message to a destination."""
         next_hop_address = self._choose_next_hop_address(destination)
         if next_hop_address is None:
-            # First we need to discover neighbours
-            self._find_neighbours()
-            yield self.env.process(self._send_packet(message, destination))
+            raise Exception('No next hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         print(round(self.env.now, 2),
               '{0} sending: {1}'.format(self.address, data))
         yield self.env.process(self._radio(data))
 
-    def receive_packet(self, message: str) -> None:
-        """Method called when a packet arrives."""
-        print(round(self.env.now, 2),
-              '{0} received: {1}'.format(self.address, message))
-        origin_address, destination_address, info = \
-            get_components_of_message(message)
+    def _analyze_hello_message(self, info: str, origin_address: str) -> None:
+        """Checks information of Hello message."""
         new_neighbour_hop_count = int(info.split('+')[1])
         new_neighbour = Neighbour(origin_address, new_neighbour_hop_count)
         if new_neighbour.address not in self._neighbours:
@@ -114,14 +112,13 @@ class _MinHopRouting(RoutingProtocol):
                 self.env.process(self.add_to_output_queue(
                     f'Hello+{self.hop_count}', 'broadcast'))
 
-
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
         """Returns one or a list of nodes to route data."""
         if destination == 'broadcast' or destination == '':
             return ''
         elif destination == 'sink':
-            min_hop_neighbour = _find_min_hop_neighbour(self._neighbours)
-            return min_hop_neighbour.address
+            min_hop_address = _find_min_hop_neighbour(self._neighbours)
+            return min_hop_address
         return None
 
 
@@ -134,6 +131,20 @@ class MinHopRouting(_MinHopRouting):
                  env: Environment) -> None:
         super().__init__(address, radio, env)
         self.hop_count = 99
+
+    def receive_packet(self, message: str) -> None:
+        """Method called when a packet arrives."""
+        print(round(self.env.now, 2),
+              '{0} received: {1}'.format(self.address, message))
+        origin_address, destination_address, info = \
+            get_components_of_message(message)
+        assert destination_address == self.address or destination_address == ''
+        if '+' not in info:
+            # It is not a hello message, so it should be forwarded
+            self.env.process(self.add_to_output_queue(info, 'sink'))
+            return
+        # If '+' in the message, it is a hello message
+        self._analyze_hello_message(info, origin_address)
 
 
 class MinHopRoutingSink(_MinHopRouting):
@@ -150,3 +161,18 @@ class MinHopRoutingSink(_MinHopRouting):
         """Initiates the neighbours discovery with hop count."""
         yield self.env.process(self.add_to_output_queue(
             f'Hello+{self.hop_count}', 'broadcast'))
+
+    def receive_packet(self, message: str) -> None:
+        """Method called when a packet arrives."""
+        print(round(self.env.now, 2),
+              '{0} received: {1}'.format(self.address, message))
+        origin_address, destination_address, info = \
+            get_components_of_message(message)
+        assert destination_address == self.address or destination_address == ''
+        if '+' not in info:
+            # It is not a hello message, so it reached the sink node
+            print(round(self.env.now, 2), self.address,
+                  f'Message: {info} reached sink node')
+            return
+        # If '+' in the message, it is a hello message
+        self._analyze_hello_message(info, origin_address)
