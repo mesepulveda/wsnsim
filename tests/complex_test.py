@@ -1,6 +1,6 @@
 """Some very simple test of the simulator."""
 
-from simulator import SinkNode, SensingNode, Link, Network, Simulation
+from wsnsim import SinkNode, SensingNode, Link, Network, Simulation
 
 
 def test_1():
