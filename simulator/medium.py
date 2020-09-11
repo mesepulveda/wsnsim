@@ -24,17 +24,20 @@ class Medium:
         origin_address, destination_address, _ = \
             get_components_of_message(data)
         if destination_address == '':
-            # In case of broadcast, the messages are not delayed
+            # For broadcast, find all the links available from origin
             links = get_all_links_of_node(origin_address, self._links)
             for link in links:
                 destination = link.get_destination(origin_address)
+                # In case of broadcast, the messages are not delayed
                 # noinspection PyArgumentEqualDefault
                 yield self.env.timeout(0)
                 destination.receive_message(data)
         else:
             # In case of message to specific node, the message is delayed
             link = get_link_between_nodes(origin_address,
-                                          destination_address, self._links)
+                                          destination_address,
+                                          self._links)
             destination = link.get_destination(origin_address)
+            # Wait for a realization of the delay random variable
             yield self.env.timeout(link.get_delay())
             destination.receive_message(data)
