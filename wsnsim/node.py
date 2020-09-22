@@ -71,7 +71,7 @@ class _SimulationNode(_Node):
 
     def _print_info(self, info: str) -> None:
         """Print information with format."""
-        print(f'{self.env.now:.2f} | {self} | {info}')
+        print(f'{self.env.now:.2f} | {self.address} | {info}')
 
 
 class SimulationSensingNode(_SimulationNode, SensingNode):
