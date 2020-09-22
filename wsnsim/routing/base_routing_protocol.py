@@ -30,3 +30,7 @@ class RoutingProtocol:
     def setup(self) -> Generator[Event, Any, Any]:
         """Any setup code must go here."""
         pass
+
+    def _print_info(self, info: str) -> None:
+        """Print information with format."""
+        print(f'{self.env.now:.2f} | {self.address} | {info}')
