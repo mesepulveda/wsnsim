@@ -19,6 +19,8 @@ class RoutingProtocol:
         self._output_queue = Resource(env, capacity=1)
         self._received_messages = []
         self._output_queue_messages = []
+        self._message_sending = []
+        self._message_sent = []
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Any setup code must go here."""
@@ -47,3 +49,11 @@ class RoutingProtocol:
         self._output_queue_messages.append((self.env.now,
                                             message,
                                             destination))
+
+    def _log_message_sending(self, message: str, destination: str) -> None:
+        """Logs the timestamp when a message was sent."""
+        self._message_sending.append((self.env.now, message, destination))
+
+    def _log_message_sent(self, message: str, destination: str) -> None:
+        """Logs the timestamp when a message was sent."""
+        self._message_sent.append((self.env.now, message, destination))

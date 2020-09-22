@@ -78,7 +78,9 @@ class _MinHopRouting(RoutingProtocol):
             raise Exception('No next hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         self._print_info('{0} sending: {1}'.format(self.address, data))
+        self._log_message_sending(data, destination)
         yield self.env.process(self._radio(data))
+        self._log_message_sent(data, destination)
 
     def _analyze_hello_message(self, info: str, origin_address: str) -> None:
         """Checks information of Hello message."""
