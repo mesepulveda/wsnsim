@@ -126,6 +126,7 @@ class MinHopRouting(_MinHopRouting):
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
+        self._log_received_message(message)
         self._print_info('{0} received: {1}'.format(self.address, message))
         origin_address, destination_address, info = \
             get_components_of_message(message)
@@ -155,6 +156,7 @@ class MinHopRoutingSink(_MinHopRouting):
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
+        self._log_received_message(message)
         self._print_info('{0} received: {1}'.format(self.address, message))
         origin_address, destination_address, info = \
             get_components_of_message(message)
