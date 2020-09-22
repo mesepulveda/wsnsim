@@ -18,6 +18,10 @@ class RoutingProtocol:
         # noinspection PyArgumentEqualDefault
         self._output_queue = Resource(env, capacity=1)
 
+    def setup(self) -> Generator[Event, Any, Any]:
+        """Any setup code must go here."""
+        pass
+
     def receive_packet(self, message: str) -> Generator[Event, Any, Any]:
         """Method called when a packet arrives."""
         pass
@@ -25,10 +29,6 @@ class RoutingProtocol:
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
-        pass
-
-    def setup(self) -> Generator[Event, Any, Any]:
-        """Any setup code must go here."""
         pass
 
     def _print_info(self, info: str) -> None:
