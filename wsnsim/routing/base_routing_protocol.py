@@ -18,6 +18,7 @@ class RoutingProtocol:
         # noinspection PyArgumentEqualDefault
         self._output_queue = Resource(env, capacity=1)
         self._received_messages = []
+        self._output_queue_messages = []
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Any setup code must go here."""
@@ -39,3 +40,10 @@ class RoutingProtocol:
     def _log_received_message(self, message: str) -> None:
         """Logs the timestamp when a message is received."""
         self._received_messages.append((self.env.now, message))
+
+    def _log_output_queue_message(self, message: str, destination: str) \
+            -> None:
+        """Logs the timestamp when a message arrives to output queue."""
+        self._output_queue_messages.append((self.env.now,
+                                            message,
+                                            destination))
