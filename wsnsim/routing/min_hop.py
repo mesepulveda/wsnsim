@@ -76,8 +76,7 @@ class _MinHopRouting(RoutingProtocol):
         if next_hop_address is None:
             raise Exception('No next hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
-        print(round(self.env.now, 2),
-              '{0} sending: {1}'.format(self.address, data))
+        self._print_info('{0} sending: {1}'.format(self.address, data))
         yield self.env.process(self._radio(data))
 
     def _analyze_hello_message(self, info: str, origin_address: str) -> None:
@@ -97,8 +96,7 @@ class _MinHopRouting(RoutingProtocol):
         old_version_neighbour = self._neighbours[new_neighbour.address]
         if old_version_neighbour.hop_count != new_neighbour.hop_count:
             self._neighbours[new_neighbour.address] = new_neighbour
-            print(round(self.env.now, 2), self.address,
-                  f'Node {origin_address} is updated neighbour with hop '
+            self._print_info(f'Node {origin_address} is updated neighbour with hop '
                   f'count {new_neighbour_hop_count}')
             new_value = self.update_hop_count(new_neighbour_hop_count)
             if new_value:
@@ -128,8 +126,7 @@ class MinHopRouting(_MinHopRouting):
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
-        print(round(self.env.now, 2),
-              '{0} received: {1}'.format(self.address, message))
+        self._print_info('{0} received: {1}'.format(self.address, message))
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
@@ -158,15 +155,13 @@ class MinHopRoutingSink(_MinHopRouting):
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
-        print(round(self.env.now, 2),
-              '{0} received: {1}'.format(self.address, message))
+        self._print_info('{0} received: {1}'.format(self.address, message))
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
         if '+' not in info:
             # It is not a hello message, so it reached the sink node
-            print(round(self.env.now, 2), self.address,
-                  f'Message: {info} reached sink node')
+            self._print_info(f'Message: {info} reached sink node')
             return
         # If '+' in the message, it is a hello message
         self._analyze_hello_message(info, origin_address)
