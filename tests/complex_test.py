@@ -16,7 +16,6 @@ def test_1():
     sensing_3 = SensingNode('3')
     sensing_4 = SensingNode('4')
     sensing_5 = SensingNode('5')
-    # sensing_6 = SensingNode('6')
     # Create links
     link_1 = Link(sink, sensing_1, lambda: 1)
     link_2 = Link(sink, sensing_2, lambda: 2)
@@ -37,7 +36,7 @@ def test_1():
     # Create simulation
     simulation = Simulation(network, routing_protocol='min-hop')
     # Run it
-    simulation.run(20*60)
+    simulation.run(20*60)  # Time in seconds
 
 
 if __name__ == '__main__':
