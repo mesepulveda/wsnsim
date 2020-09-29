@@ -35,8 +35,10 @@ class _Node:
 class SensingNode(_Node):
     """Defines attributes and methods of a regular sensing (not sink) node."""
 
-    def __init__(self, address: str, name: Optional[str] = None) -> None:
+    def __init__(self, address: str, name: Optional[str] = None,
+                 sensing_period: Optional[float] = 60 * 60) -> None:
         super().__init__(address, name)
+        self.sensing_period = sensing_period
 
 
 class SinkNode(_Node):
@@ -80,9 +82,10 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
     def __init__(self, address: str, name: str,
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment) -> None:
+                 env: Environment, sensing_period: float) -> None:
         _SimulationNode.__init__(self, address, name, routing_protocol,
                                  access_function, env)
+        SensingNode.__init__(self, address, sensing_period=sensing_period)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
@@ -95,7 +98,7 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
             # Sensing every 15 minutes
             event = self._send_message(self._format_measurement('X'), 'sink')
             self.env.process(event)
-            yield self.env.timeout(15 * 60)
+            yield self.env.timeout(self.sensing_period)
 
     def _format_measurement(self, measurement: str) -> str:
         """Formats the measurement to include address and timestamp."""
@@ -144,18 +147,20 @@ def convert_to_simulation_nodes(
         routing_sink_node = MinHopRoutingSink
     for node in regular_nodes:
         if isinstance(node, SensingNode):
-            TypeOfNode = SimulationSensingNode
-            routing = routing_sensing_node
+            simulation_node = SimulationSensingNode(node.address,
+                                                    node.name,
+                                                    routing_sensing_node,
+                                                    send_data_function,
+                                                    env,
+                                                    node.sensing_period)
         elif isinstance(node, SinkNode):
-            TypeOfNode = SimulationSinkNode
-            routing = routing_sink_node
+            simulation_node = SimulationSinkNode(node.address,
+                                                 node.name,
+                                                 routing_sink_node,
+                                                 send_data_function,
+                                                 env)
         else:
             raise AttributeError('Class of node is not correct')
-        simulation_node = TypeOfNode(node.address,
-                                     node.name,
-                                     routing,
-                                     send_data_function,
-                                     env)
         simulation_nodes.append(simulation_node)
     return simulation_nodes
 

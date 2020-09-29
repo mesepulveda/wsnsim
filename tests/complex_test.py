@@ -11,11 +11,11 @@ def test_1():
     """
     # Create nodes
     sink = SinkNode('0', 'sink')
-    sensing_1 = SensingNode('1')
-    sensing_2 = SensingNode('2')
-    sensing_3 = SensingNode('3')
-    sensing_4 = SensingNode('4')
-    sensing_5 = SensingNode('5')
+    sensing_1 = SensingNode('1', sensing_period=15*60)
+    sensing_2 = SensingNode('2', sensing_period=15*60)
+    sensing_3 = SensingNode('3', sensing_period=15*60)
+    sensing_4 = SensingNode('4', sensing_period=15*60)
+    sensing_5 = SensingNode('5', sensing_period=15*60)
     # Create links
     link_1 = Link(sink, sensing_1, lambda: 1)
     link_2 = Link(sink, sensing_2, lambda: 2)
