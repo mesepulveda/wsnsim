@@ -5,7 +5,7 @@ from random import choice
 
 from simpy import Environment, Event
 
-from ..auxiliary_functions import get_components_of_message
+from ..auxiliary_functions import get_components_of_message, is_hello_message
 from .base_routing_protocol import RoutingProtocol
 
 
@@ -134,11 +134,11 @@ class MinHopRouting(_MinHopRouting):
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
-        if '+' not in info:
+        if not is_hello_message(info):
             # It is not a hello message, so it should be forwarded
             self.env.process(self.add_to_output_queue(info, 'sink'))
             return
-        # If '+' in the message, it is a hello message
+        # It is a hello message
         self._analyze_hello_message(info, origin_address)
 
 
@@ -164,9 +164,9 @@ class MinHopRoutingSink(_MinHopRouting):
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
-        if '+' not in info:
+        if not is_hello_message(info):
             # It is not a hello message, so it reached the sink node
             self._print_info(f'message: {info} reached sink node')
             return
-        # If '+' in the message, it is a hello message
+        # It is a hello message
         self._analyze_hello_message(info, origin_address)

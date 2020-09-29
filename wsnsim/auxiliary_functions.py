@@ -39,3 +39,10 @@ def get_components_of_message(data: str) -> Iterable[str]:
     data_list = data.split(',')
     origin, destination, message = data_list
     return origin, destination, message
+
+
+def is_hello_message(message: str) -> bool:
+    """Checks if a message is a hello message."""
+    if "Hello" in message:
+        return True
+    return False
