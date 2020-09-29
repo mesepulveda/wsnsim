@@ -17,6 +17,7 @@ class RoutingProtocol:
         self.env = env
         # noinspection PyArgumentEqualDefault
         self._output_queue = Resource(env, capacity=1)
+        # List to save messages in format: (timestamp, message)
         self._received_messages = []
         self._output_queue_messages = []
         self._message_sending = []
