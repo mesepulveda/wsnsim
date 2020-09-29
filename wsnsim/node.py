@@ -81,7 +81,8 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
-        super().__init__(address, name, routing_protocol, access_function, env)
+        _SimulationNode.__init__(self, address, name, routing_protocol,
+                                 access_function, env)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
@@ -108,8 +109,8 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
-        super().__init__(address, name, routing_protocol, access_function,
-                         env)
+        _SimulationNode.__init__(self, address, name, routing_protocol,
+                                 access_function, env)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
