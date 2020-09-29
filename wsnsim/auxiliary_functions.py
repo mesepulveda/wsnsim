@@ -46,3 +46,10 @@ def is_hello_message(message: str) -> bool:
     if "Hello" in message:
         return True
     return False
+
+
+def parse_payload(payload: str) -> Iterable[str]:
+    """Parses the payload and returns the three components."""
+    payload_components = payload.split('/')
+    source, measurement, measurement_time = payload_components
+    return source, measurement, float(measurement_time)
