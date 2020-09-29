@@ -188,3 +188,11 @@ def _get_equivalent_node(
     for simulation_node in simulation_nodes:
         if node.address == simulation_node.address:
             return simulation_node
+
+
+def get_sink_node(nodes: Iterable[SimulationNode]) -> SimulationSinkNode:
+    """Returns the sink node from a list of Simulation Nodes."""
+    for node in nodes:
+        if isinstance(node, SimulationSinkNode):
+            return node
+    Exception("There was not a Sink Node in the list.")
