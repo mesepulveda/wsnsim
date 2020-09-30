@@ -5,7 +5,7 @@ from wsnsim import SinkNode, SensingNode, Link, Network, Simulation
 
 def test_1():
     # Create two nodes
-    sink = SinkNode('0', 'sink')
+    sink = SinkNode('0', name='sink')
     sensing = SensingNode('1')
     # Create one link
     link = Link(sink, sensing, lambda: 5)
