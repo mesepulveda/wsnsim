@@ -9,6 +9,7 @@ from .medium import Medium
 
 from .network import Network, SimulationNetwork
 from .node import convert_to_simulation_nodes
+from .performance import NetworkPerformance
 
 DEFAULT_SEED = 290696
 
@@ -33,3 +34,7 @@ class Simulation:
         """Runs the simulation for a given time in seconds."""
         seed(seed_value)  # Restart the seed
         self.env.run(until=time)
+
+    def show_performance(self):
+        """Calls a routine to show the performance of the simulation."""
+        NetworkPerformance(self.network)

@@ -37,6 +37,8 @@ def test_1():
     simulation = Simulation(network, routing_protocol='min-hop')
     # Run it
     simulation.run(20*60)  # Time in seconds
+    # Show the performance
+    simulation.show_performance()
 
 
 if __name__ == '__main__':
