@@ -11,10 +11,8 @@ from .routing import RoutingProtocol
 class _Node:
     """Defines attributes and methods needed in both sink and sensing nodes."""
 
-    def __init__(self, address: str, wakeup_offset: float,
-                 name: Optional[str] = None) -> None:
+    def __init__(self, address: str, name: Optional[str] = None) -> None:
         self.address = address
-        self.wakeup_offset = wakeup_offset
         if name:
             self.name = name
         else:
@@ -38,17 +36,17 @@ class SensingNode(_Node):
 
     def __init__(self, address: str, name: Optional[str] = None,
                  sensing_period: Optional[float] = 60*60,
-                 wakeup_offset: Optional[float] = 30) -> None:
-        super().__init__(address, wakeup_offset, name)
+                 sensing_offset: Optional[float] = 60) -> None:
+        super().__init__(address, name)
+        self.sensing_offset = sensing_offset
         self.sensing_period = sensing_period
 
 
 class SinkNode(_Node):
     """Defines attributes and methods specific for a sink node."""
 
-    def __init__(self, address: str, wakeup_offset: Optional[float] = 60,
-                 name: Optional[str] = None) -> None:
-        super().__init__(address, wakeup_offset, name)
+    def __init__(self, address: str, name: Optional[str] = None) -> None:
+        super().__init__(address, name)
 
 
 class _SimulationNode(_Node):
@@ -57,8 +55,8 @@ class _SimulationNode(_Node):
     def __init__(self, address: str, name: str,
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment, wakeup_offset: float) -> None:
-        super().__init__(address, wakeup_offset, name)
+                 env: Environment) -> None:
+        super().__init__(address, name)
         self.routing_protocol = routing_protocol(address, access_function, env)
         self.env = env
 
@@ -86,17 +84,18 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment, sensing_period: float,
-                 wakeup_offset: float) -> None:
+                 sensing_offset: float) -> None:
         _SimulationNode.__init__(self, address, name, routing_protocol,
-                                 access_function, env, wakeup_offset)
-        SensingNode.__init__(self, address, sensing_period=sensing_period)
+                                 access_function, env)
+        SensingNode.__init__(self, address, sensing_period=sensing_period,
+                             sensing_offset=sensing_offset)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
-        # wait for wakeup of node
-        yield self.env.timeout(self.wakeup_offset)
         self._print_info('is awake')
+        # Wait for the sensing offset
+        yield self.env.timeout(self.sensing_offset)
         while True:
             # Sensing every 15 minutes
             event = self._send_message(self._format_measurement('X'), 'sink')
@@ -114,18 +113,16 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
     def __init__(self, address: str, name: str,
                  routing_protocol: Type[RoutingProtocol],
                  access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment, wakeup_offset: float) -> None:
+                 env: Environment) -> None:
         _SimulationNode.__init__(self, address, name, routing_protocol,
-                                 access_function, env, wakeup_offset)
+                                 access_function, env)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
-        # wait for wakeup of node
-        yield self.env.timeout(self.wakeup_offset)
         self._print_info('is awake')
         # Start neighbour discovery and hop count update
-        self.env.process(self.routing_protocol.setup())
+        yield self.env.process(self.routing_protocol.setup())
 
 
 Node = Union[SensingNode, SinkNode]
@@ -154,14 +151,13 @@ def convert_to_simulation_nodes(
                                                     send_data_function,
                                                     env,
                                                     node.sensing_period,
-                                                    node.wakeup_offset)
+                                                    node.sensing_offset)
         elif isinstance(node, SinkNode):
             simulation_node = SimulationSinkNode(node.address,
                                                  node.name,
                                                  routing_sink_node,
                                                  send_data_function,
-                                                 env,
-                                                 node.wakeup_offset)
+                                                 env)
         else:
             raise AttributeError('Class of node is not correct')
         simulation_nodes.append(simulation_node)
