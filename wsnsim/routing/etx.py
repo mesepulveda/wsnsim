@@ -112,11 +112,12 @@ class _ETX(RoutingProtocol):
         self._log_message_sending(data, destination)
         if prove_packet:
             start_time = self.env.now
-        yield self.env.process(self._radio(data))
-        if prove_packet:
+            yield self.env.process(self._radio(data))
             end_time = self.env.now
             delay = end_time - start_time
             self._neighbours[destination].update_link_etx(delay)
+        else:
+            yield self.env.process(self._radio(data))
         self._log_message_sent(data, destination)
 
     def _analyze_hello_message(self, origin_address: str) -> None:
@@ -154,12 +155,28 @@ class ETX(_ETX):
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
-        if not is_hello_message(info):
+        if is_hello_message(info):
+            # It is a hello message
+            self._analyze_hello_message(origin_address)
+        elif is_etx_message(info):
+            # It is a etx message
+            self._analyze_etx_message(origin_address, info)
+        else:
             # It is not a hello message, so it should be forwarded
             self.env.process(self.add_to_output_queue(info, 'sink'))
             return
-        # It is a hello message
-        self._analyze_hello_message(origin_address)
+
+    def _analyze_etx_message(self, origin_address: str, info: str) -> None:
+        """Updates the neighbour information with a new ETX."""
+        new_etx = float(info.split('+')[1])
+        self._neighbours[origin_address].update_etx(new_etx)
+
+
+def is_etx_message(message: str) -> bool:
+    """Checks if a message contains information about some neighbour ETX."""
+    if "ETX" in message:
+        return True
+    return False
 
 
 class ETXSink(_ETX):
@@ -183,9 +200,13 @@ class ETXSink(_ETX):
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
-        if not is_hello_message(info):
+        if is_hello_message(info):
+            # It is a hello message
+            self._analyze_hello_message(origin_address)
+        elif is_etx_message(info):
+            # It is a etx message the sink does nothing
+            pass
+        else:
             # It is not a hello message, so it reached the sink node
             self._print_info(f'message: {info} reached sink node')
-            return
-        # It is a hello message
-        self._analyze_hello_message(origin_address)
+
