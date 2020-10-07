@@ -2,10 +2,12 @@
 
 from typing import Callable, Generator, Any, Optional, Dict
 from random import choice
+from statistics import mean
 
 from simpy import Environment, Event
 
 from .base_routing_protocol import RoutingProtocol
+from ..auxiliary_functions import get_components_of_message, is_hello_message
 
 """
 ETX:
@@ -21,29 +23,38 @@ the own etx to min(total_etx) and sharing again...
 class Neighbour:
     """Definition of a neighbour in the context of ETX routing."""
 
-    def __init__(self, address: str, etx: float, link_etx: float) -> None:
+    def __init__(self, address: str, etx: float = 999999) -> None:
         self.address = address
         self.etx = etx
-        self.link_etx = link_etx
-        self.total_etx = etx + link_etx
+        self.link_etx = []
+        self.total_etx = etx
 
     def update_etx(self, etx: float) -> None:
         """Updates the etx and total_etx attributes."""
         self.etx = etx
-        self.total_etx = etx + self.link_etx
+        if self.link_etx:
+            self.total_etx = etx + mean(self.link_etx)
+        else:
+            self.total_etx = etx
 
     def update_link_etx(self, link_etx: float) -> None:
         """Updates the link_etx and total_etx attributes."""
-        self.link_etx = link_etx
-        self.total_etx = self.etx + link_etx
+        self.link_etx.append(link_etx)
+        self.total_etx = self.etx + mean(self.link_etx)
 
     def __repr__(self):
+        link_etx = 0
+        if self.link_etx:
+            link_etx = mean(self.link_etx)
         return f'(Address: {self.address}, ETX: {self.etx}), ' \
-               f'Link ETX: {self.link_etx}, Total ETX: {self.total_etx}'
+               f'Link ETX: {link_etx}, Total ETX: {self.total_etx}'
 
     def __str__(self):
+        link_etx = 0
+        if self.link_etx:
+            link_etx = mean(self.link_etx)
         return f'(Address: {self.address}, ETX: {self.etx}), ' \
-               f'Link ETX: {self.link_etx}, Total ETX: {self.total_etx}'
+               f'Link ETX: {link_etx}, Total ETX: {self.total_etx}'
 
     def __eq__(self, other):
         return other.address == self.address
@@ -64,13 +75,14 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
 
 class _ETX(RoutingProtocol):
     """Implements methods to both sink and sensing nodes."""
+    _neighbours: Dict[str, Neighbour]
 
     def __init__(self,
                  address: str,
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
-        self.etx = 9999999
+        self.etx = 999999
         self._neighbours = dict()
 
     def update_etx(self, tentative_etx: float) -> bool:
@@ -91,39 +103,28 @@ class _ETX(RoutingProtocol):
     def _send_packet(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
         """Method to send a message to a destination."""
+        prove_packet = destination not in ['', 'broadcast', 'sink']
         next_hop_address = self._choose_next_hop_address(destination)
         if next_hop_address is None:
             raise Exception('No next hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         self._print_info(f'sending: {data}')
         self._log_message_sending(data, destination)
+        if prove_packet:
+            start_time = self.env.now
         yield self.env.process(self._radio(data))
+        if prove_packet:
+            end_time = self.env.now
+            delay = end_time - start_time
+            self._neighbours[destination].update_link_etx(delay)
         self._log_message_sent(data, destination)
 
-    def _analyze_hello_message(self, info: str, origin_address: str) -> None:
+    def _analyze_hello_message(self, origin_address: str) -> None:
         """Checks information of Hello message."""
-        new_neighbour_hop_count = int(info.split('+')[1])
-        new_neighbour = Neighbour(origin_address, new_neighbour_hop_count)
+        new_neighbour = Neighbour(origin_address)
         if new_neighbour.address not in self._neighbours:
             self._neighbours[new_neighbour.address] = new_neighbour
-            self.update_hop_count(new_neighbour_hop_count)
-            self.env.process(self.add_to_output_queue(
-                f'Hello+{self.hop_count}', 'broadcast'))
-            return
-        # In case the neighbour exists, check if the hop count is the same
-        # if it is the same, nothing must be done, if it is different, must
-        # be updated, check if the own hop count changes and, if it does change
-        # should be shared
-        old_version_neighbour = self._neighbours[new_neighbour.address]
-        if old_version_neighbour.hop_count != new_neighbour.hop_count:
-            self._neighbours[new_neighbour.address] = new_neighbour
-            self._print_info(f'Node {origin_address} is updated neighbour with'
-                             f'hop count {new_neighbour_hop_count}')
-            new_value = self.update_hop_count(new_neighbour_hop_count)
-            if new_value:
-                # Share new hop count
-                self.env.process(self.add_to_output_queue(
-                    f'Hello+{self.hop_count}', 'broadcast'))
+            self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
 
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
         """Returns one or a list of nodes to route data."""
@@ -132,6 +133,8 @@ class _ETX(RoutingProtocol):
         elif destination == 'sink':
             min_etx_address = _find_min_etx_neighbour(self._neighbours)
             return min_etx_address
+        elif destination in self._neighbours:
+            return destination
         return None
 
 
@@ -143,7 +146,6 @@ class ETX(_ETX):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
-        self.etx = 60*60
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
@@ -157,7 +159,7 @@ class ETX(_ETX):
             self.env.process(self.add_to_output_queue(info, 'sink'))
             return
         # It is a hello message
-        self._analyze_hello_message(info, origin_address)
+        self._analyze_hello_message(origin_address)
 
 
 class ETXSink(_ETX):
@@ -172,8 +174,7 @@ class ETXSink(_ETX):
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Initiates the neighbours discovery with hop count."""
-        yield self.env.process(self.add_to_output_queue(
-            f'Hello+{self.hop_count}', 'broadcast'))
+        yield self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
@@ -187,4 +188,4 @@ class ETXSink(_ETX):
             self._print_info(f'message: {info} reached sink node')
             return
         # It is a hello message
-        self._analyze_hello_message(info, origin_address)
+        self._analyze_hello_message(origin_address)
