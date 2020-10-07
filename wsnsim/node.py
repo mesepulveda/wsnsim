@@ -121,7 +121,7 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
         self._print_info('is awake')
-        # Start neighbour discovery and hop count update
+        # Start routing protocol setup routine
         yield self.env.process(self.routing_protocol.setup())
 
 
