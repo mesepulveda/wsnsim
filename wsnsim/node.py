@@ -4,7 +4,7 @@ from typing import Union, Optional, Callable, Iterable, Type, Generator, Any
 
 from simpy import Environment, Event
 
-from .routing import MinHopRouting, MinHopRoutingSink
+from .routing import MinHopRouting, MinHopRoutingSink, ETX, ETXSink
 from .routing import RoutingProtocol
 
 
@@ -140,6 +140,9 @@ def convert_to_simulation_nodes(
     if routing_protocol == 'min-hop':
         routing_sensing_node = MinHopRouting
         routing_sink_node = MinHopRoutingSink
+    elif routing_protocol == "etx":
+        routing_sensing_node = ETX
+        routing_sink_node = ETXSink
     else:  # Default routing protocol
         raise ValueError(f"{routing_protocol} is not a valid protocol")
     for node in regular_nodes:
