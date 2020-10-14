@@ -95,7 +95,7 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
         """Main routine of the nodes."""
         self._print_info('is awake')
         # Start routing protocol setup routine
-        yield self.env.process(self.routing_protocol.setup())
+        self.env.process(self.routing_protocol.setup())
         # Wait for the sensing offset
         yield self.env.timeout(self.sensing_offset)
         while True:
@@ -124,7 +124,8 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
         """Main routine of the nodes."""
         self._print_info('is awake')
         # Start routing protocol setup routine
-        yield self.env.process(self.routing_protocol.setup())
+        self.env.process(self.routing_protocol.setup())
+        yield self.env.timeout(0)
 
 
 Node = Union[SensingNode, SinkNode]
