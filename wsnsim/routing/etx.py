@@ -46,15 +46,15 @@ class Neighbour:
         link_etx = 0
         if self.link_etx:
             link_etx = mean(self.link_etx)
-        return f'(Address: {self.address}, ETX: {self.etx}), ' \
-               f'Link ETX: {link_etx}, Total ETX: {self.total_etx}'
+        return f'(Address: {self.address}, ETX: {self.etx}, ' \
+               f'Link ETX: {link_etx}, Total ETX: {self.total_etx})'
 
     def __str__(self):
         link_etx = 0
         if self.link_etx:
             link_etx = mean(self.link_etx)
-        return f'(Address: {self.address}, ETX: {self.etx}), ' \
-               f'Link ETX: {link_etx}, Total ETX: {self.total_etx}'
+        return f'(Address: {self.address}, ETX: {self.etx}, ' \
+               f'Link ETX: {link_etx}, Total ETX: {self.total_etx})'
 
     def __eq__(self, other):
         return other.address == self.address
