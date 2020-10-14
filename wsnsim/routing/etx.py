@@ -68,7 +68,8 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
     sink."""
     neighbours = neighbours_dict.values()
     min_total_etx = min({neighbour.total_etx for neighbour in neighbours})
-    min_etx_neighbours = [n for n in neighbours if n.etx == min_total_etx]
+    # <= added instead of == for float compatibility
+    min_etx_neighbours = [n for n in neighbours if n.etx <= min_total_etx]
     neighbour_selected = choice(min_etx_neighbours)
     return neighbour_selected.address
 
@@ -76,7 +77,7 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
 class _ETX(RoutingProtocol):
     """Implements methods to both sink and sensing nodes."""
     _neighbours: Dict[str, Neighbour]
-    etx_share_period = 30*60  # Time between messages sharing the own ETX
+    etx_share_period = 5*60  # Time between messages sharing the own ETX
 
     def __init__(self,
                  address: str,
@@ -86,7 +87,7 @@ class _ETX(RoutingProtocol):
         self.etx = 999999
         self._neighbours = dict()
 
-    def share_etx(self) -> None:
+    def share_etx(self) -> Generator[Event, Any, Any]:
         """Routine to share the own ETX periodically."""
         while True:
             yield self.env.timeout(self.etx_share_period)
@@ -150,7 +151,7 @@ class _ETX(RoutingProtocol):
 class ETX(_ETX):
     """Class of min-hop routing protocol for sensing nodes."""
 
-    probe_packet_rate = 1  # Per neighbour per hour
+    probe_packet_rate = 60  # Per neighbour per hour
 
     def __init__(self,
                  address: str,
@@ -158,9 +159,21 @@ class ETX(_ETX):
                  env: Environment) -> None:
         super().__init__(address, radio, env)
 
-    def setup(self) -> None:
+    def active_link_probing(self) -> Generator[Event, Any, Any]:
+        """Routine to actively probe the links with dummy packets."""
+        yield self.env.timeout(10)
+        probe_per_hour = self.probe_packet_rate*len(self._neighbours)
+        probe_period = 60*60/probe_per_hour
+        while True:
+            for address, neighbour in self._neighbours.items():
+                yield self.env.timeout(probe_period)
+                self.env.process(self.add_to_output_queue("dummy", address))
+
+    def setup(self) -> Generator[Event, Any, Any]:
         """Initiates the neighbours discovery with hop count."""
-        self.share_etx()
+        self.env.process(self.share_etx())
+        self.env.process(self.active_link_probing())
+        yield self.env.timeout(0)
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
@@ -181,9 +194,11 @@ class ETX(_ETX):
             return
 
     def _analyze_etx_message(self, origin_address: str, info: str) -> None:
-        """Updates the neighbour information with a new ETX."""
-        new_etx = float(info.split('+')[1])
-        self._neighbours[origin_address].update_etx(new_etx)
+        """Updates the neighbour information with a new ETX or discard if it is
+         a dummy packet."""
+        if "dummy" not in info:
+            new_etx = float(info.split('+')[1])
+            self._neighbours[origin_address].update_etx(new_etx)
 
 
 def is_etx_message(message: str) -> bool:
@@ -224,4 +239,3 @@ class ETXSink(_ETX):
         else:
             # It is not a hello message, so it reached the sink node
             self._print_info(f'message: {info} reached sink node')
-
