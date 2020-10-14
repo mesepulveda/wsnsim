@@ -167,7 +167,8 @@ class ETX(_ETX):
         while True:
             for address, neighbour in self._neighbours.items():
                 yield self.env.timeout(probe_period)
-                self.env.process(self.add_to_output_queue("dummy", address))
+                message = "ETX+dummy"
+                self.env.process(self.add_to_output_queue(message, address))
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Initiates the neighbours discovery with hop count."""
