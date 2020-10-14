@@ -38,8 +38,7 @@ def test_1():
     # Run it
     simulation.run(2*60*60)  # Time in seconds
     # Show the performance
-    print(simulation.network.nodes[4].routing_protocol._neighbours)
-    # simulation.show_performance()
+    simulation.show_performance()
 
 
 if __name__ == '__main__':
