@@ -141,8 +141,7 @@ def convert_to_simulation_nodes(
         routing_sensing_node = MinHopRouting
         routing_sink_node = MinHopRoutingSink
     else:  # Default routing protocol
-        routing_sensing_node = MinHopRouting
-        routing_sink_node = MinHopRoutingSink
+        raise ValueError(f"{routing_protocol} is not a valid protocol")
     for node in regular_nodes:
         if isinstance(node, SensingNode):
             simulation_node = SimulationSensingNode(node.address,
