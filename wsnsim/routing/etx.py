@@ -77,7 +77,7 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
 class _ETX(RoutingProtocol):
     """Implements methods to both sink and sensing nodes."""
     _neighbours: Dict[str, Neighbour]
-    etx_share_period = 5*60  # Time between messages sharing the own ETX
+    etx_share_period = 60*60  # Time between messages sharing the own ETX
 
     def __init__(self,
                  address: str,
@@ -143,7 +143,7 @@ class _ETX(RoutingProtocol):
 class ETX(_ETX):
     """Class of min-hop routing protocol for sensing nodes."""
 
-    probe_packet_rate = 60  # Per neighbour per hour
+    probe_packet_rate = 1  # Per neighbour per hour
 
     def __init__(self,
                  address: str,
