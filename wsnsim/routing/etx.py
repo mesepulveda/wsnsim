@@ -87,19 +87,11 @@ class _ETX(RoutingProtocol):
         self.etx = 999999
         self._neighbours = dict()
 
-    def share_etx(self) -> Generator[Event, Any, Any]:
-        """Routine to share the own ETX periodically."""
-        while True:
-            yield self.env.timeout(self.etx_share_period)
-            message = f"ETX+{self.etx}"
-            self.env.process(self.add_to_output_queue(message, "broadcast"))
-
-    def update_etx(self, tentative_etx: float) -> bool:
+    def update_etx(self) -> None:
         """Updates the ETX count."""
-        if tentative_etx < self.etx:
-            self.etx = tentative_etx
-            return True
-        return False
+        neighbours = self._neighbours.values()
+        neighbours_etx = [neighbour.total_etx for neighbour in neighbours]
+        self.etx = min(neighbours_etx)
 
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
@@ -170,6 +162,14 @@ class ETX(_ETX):
                 message = "ETX+dummy"
                 self.env.process(self.add_to_output_queue(message, address))
 
+    def share_etx(self) -> Generator[Event, Any, Any]:
+        """Routine to share the own ETX periodically."""
+        while True:
+            yield self.env.timeout(self.etx_share_period)
+            self.update_etx()
+            message = f"ETX+{self.etx}"
+            self.env.process(self.add_to_output_queue(message, "broadcast"))
+
     def setup(self) -> Generator[Event, Any, Any]:
         """Initiates the neighbours discovery with hop count."""
         self.env.process(self.share_etx())
@@ -219,10 +219,17 @@ class ETXSink(_ETX):
         super().__init__(address, radio, env)
         self.etx = 0
 
+    def share_etx(self) -> Generator[Event, Any, Any]:
+        """Routine to share the own ETX periodically."""
+        while True:
+            yield self.env.timeout(self.etx_share_period)
+            message = f"ETX+{self.etx}"
+            self.env.process(self.add_to_output_queue(message, "broadcast"))
+
     def setup(self) -> None:
         """Initiates the neighbours discovery with hop count."""
         yield self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
-        self.share_etx()
+        self.env.process(self.share_etx())
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
