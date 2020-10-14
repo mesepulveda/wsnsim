@@ -11,11 +11,11 @@ def test_1():
     """
     # Create nodes
     sink = SinkNode('0', name='sink')
-    sensing_1 = SensingNode('1', sensing_period=15*60, sensing_offset=5)
-    sensing_2 = SensingNode('2', sensing_period=15*60, sensing_offset=5)
-    sensing_3 = SensingNode('3', sensing_period=15*60, sensing_offset=5)
-    sensing_4 = SensingNode('4', sensing_period=15*60, sensing_offset=5)
-    sensing_5 = SensingNode('5', sensing_period=15*60, sensing_offset=5)
+    sensing_1 = SensingNode('1', sensing_period=60*60, sensing_offset=10*60)
+    sensing_2 = SensingNode('2', sensing_period=60*60, sensing_offset=20*60)
+    sensing_3 = SensingNode('3', sensing_period=60*60, sensing_offset=30*60)
+    sensing_4 = SensingNode('4', sensing_period=60*60, sensing_offset=40*60)
+    sensing_5 = SensingNode('5', sensing_period=60*60, sensing_offset=50*60)
     # Create links
     link_1 = Link(sink, sensing_1, lambda: 1)
     link_2 = Link(sink, sensing_2, lambda: 2)
@@ -36,7 +36,7 @@ def test_1():
     # Create simulation
     simulation = Simulation(network, routing_protocol='etx')
     # Run it
-    simulation.run(2*60*60)  # Time in seconds
+    simulation.run(365*24*60*60)  # Time in seconds
     # Show the performance
     simulation.show_performance()
 
