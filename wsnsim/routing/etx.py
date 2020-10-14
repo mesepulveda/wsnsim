@@ -76,6 +76,7 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
 class _ETX(RoutingProtocol):
     """Implements methods to both sink and sensing nodes."""
     _neighbours: Dict[str, Neighbour]
+    etx_share_period = 30*60  # Time between messages sharing the own ETX
 
     def __init__(self,
                  address: str,
@@ -84,6 +85,13 @@ class _ETX(RoutingProtocol):
         super().__init__(address, radio, env)
         self.etx = 999999
         self._neighbours = dict()
+
+    def share_etx(self) -> None:
+        """Routine to share the own ETX periodically."""
+        while True:
+            yield self.env.timeout(self.etx_share_period)
+            message = f"ETX+{self.etx}"
+            self.env.process(self.add_to_output_queue(message, "broadcast"))
 
     def update_etx(self, tentative_etx: float) -> bool:
         """Updates the ETX count."""
@@ -142,11 +150,17 @@ class _ETX(RoutingProtocol):
 class ETX(_ETX):
     """Class of min-hop routing protocol for sensing nodes."""
 
+    probe_packet_rate = 1  # Per neighbour per hour
+
     def __init__(self,
                  address: str,
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
+
+    def setup(self) -> None:
+        """Initiates the neighbours discovery with hop count."""
+        self.share_etx()
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
@@ -189,9 +203,10 @@ class ETXSink(_ETX):
         super().__init__(address, radio, env)
         self.etx = 0
 
-    def setup(self) -> Generator[Event, Any, Any]:
+    def setup(self) -> None:
         """Initiates the neighbours discovery with hop count."""
         yield self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
+        self.share_etx()
 
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
