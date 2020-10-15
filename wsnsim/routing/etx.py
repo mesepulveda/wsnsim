@@ -134,7 +134,7 @@ class _ETX(RoutingProtocol):
 
 
 class ETX(_ETX):
-    """Class of min-hop routing protocol for sensing nodes."""
+    """Class of ETX routing protocol for sensing nodes."""
 
     probe_packet_rate = 1  # Per neighbour per hour
 
