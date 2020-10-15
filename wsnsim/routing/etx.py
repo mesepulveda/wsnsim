@@ -156,10 +156,14 @@ class ETX(_ETX):
         yield self.env.timeout(1)
         probe_per_hour = self.probe_packet_rate*len(self._neighbours)
         probe_period = 60*60/probe_per_hour
+        message = "ETX+dummy"
+        # Fist probe to every neighbour
+        for address in self._neighbours:
+            self.env.process(self.add_to_output_queue(message, address))
+        # Probes are sent periodically
         while True:
             for address, neighbour in self._neighbours.items():
                 yield self.env.timeout(probe_period)
-                message = "ETX+dummy"
                 self.env.process(self.add_to_output_queue(message, address))
 
     def share_etx(self) -> Generator[Event, Any, Any]:
