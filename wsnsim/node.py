@@ -125,6 +125,7 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
         self._print_info('is awake')
         # Start routing protocol setup routine
         self.env.process(self.routing_protocol.setup())
+        # noinspection PyArgumentEqualDefault
         yield self.env.timeout(0)
 
 

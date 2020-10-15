@@ -180,6 +180,7 @@ class ETX(_ETX):
         """Initiates the neighbours discovery with hop count."""
         self.env.process(self.share_etx())
         self.env.process(self.active_link_probing())
+        # noinspection PyArgumentEqualDefault
         yield self.env.timeout(0)
 
     def receive_packet(self, message: str) -> None:

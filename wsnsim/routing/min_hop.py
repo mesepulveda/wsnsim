@@ -129,6 +129,7 @@ class MinHopRouting(_MinHopRouting):
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Void setup, added for generality."""
+        # noinspection PyArgumentEqualDefault
         yield self.env.timeout(0)
 
     def receive_packet(self, message: str) -> None:
