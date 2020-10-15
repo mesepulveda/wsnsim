@@ -69,7 +69,7 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
     neighbours = neighbours_dict.values()
     min_total_etx = min({neighbour.total_etx for neighbour in neighbours})
     # <= added instead of == for float compatibility
-    min_etx_neighbours = [n for n in neighbours if n.etx <= min_total_etx]
+    min_etx_neighbours = [n for n in neighbours if n.total_etx <= min_total_etx]
     neighbour_selected = choice(min_etx_neighbours)
     return neighbour_selected.address
 
