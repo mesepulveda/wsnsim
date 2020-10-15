@@ -122,7 +122,7 @@ class _ETX(RoutingProtocol):
             self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
 
     def _choose_next_hop_address(self, destination: str) -> Optional[str]:
-        """Returns one or a list of nodes to route data."""
+        """Returns one nodes to route data."""
         if destination == 'broadcast' or destination == '':
             return ''
         elif destination == 'sink':
