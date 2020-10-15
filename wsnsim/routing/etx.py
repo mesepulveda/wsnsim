@@ -168,11 +168,12 @@ class ETX(_ETX):
 
     def share_etx(self) -> Generator[Event, Any, Any]:
         """Routine to share the own ETX periodically."""
+        yield self.env.timeout(60)  # wait for a minute before share the ETX
         while True:
-            yield self.env.timeout(self.etx_share_period)
             self.update_etx()
             message = f"ETX+{self.etx}"
             self.env.process(self.add_to_output_queue(message, "broadcast"))
+            yield self.env.timeout(self.etx_share_period)
 
     def setup(self) -> Generator[Event, Any, Any]:
         """Initiates the neighbours discovery with hop count."""
@@ -226,9 +227,9 @@ class ETXSink(_ETX):
     def share_etx(self) -> Generator[Event, Any, Any]:
         """Routine to share the own ETX periodically."""
         while True:
-            yield self.env.timeout(self.etx_share_period)
             message = f"ETX+{self.etx}"
             self.env.process(self.add_to_output_queue(message, "broadcast"))
+            yield self.env.timeout(self.etx_share_period)
 
     def setup(self) -> None:
         """Initiates the neighbours discovery with hop count."""
