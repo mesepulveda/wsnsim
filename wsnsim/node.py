@@ -4,7 +4,7 @@ from typing import Union, Optional, Callable, Iterable, Type, Generator, Any
 
 from simpy import Environment, Event
 
-from .routing import MinHopRouting, MinHopRoutingSink
+from .routing import MinHopRouting, MinHopRoutingSink, ETX, ETXSink
 from .routing import RoutingProtocol
 
 
@@ -94,6 +94,8 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
         self._print_info('is awake')
+        # Start routing protocol setup routine
+        self.env.process(self.routing_protocol.setup())
         # Wait for the sensing offset
         yield self.env.timeout(self.sensing_offset)
         while True:
@@ -121,8 +123,10 @@ class SimulationSinkNode(_SimulationNode, SinkNode):
     def _main_routine(self) -> Generator[Event, Any, Any]:
         """Main routine of the nodes."""
         self._print_info('is awake')
-        # Start neighbour discovery and hop count update
-        yield self.env.process(self.routing_protocol.setup())
+        # Start routing protocol setup routine
+        self.env.process(self.routing_protocol.setup())
+        # noinspection PyArgumentEqualDefault
+        yield self.env.timeout(0)
 
 
 Node = Union[SensingNode, SinkNode]
@@ -140,9 +144,11 @@ def convert_to_simulation_nodes(
     if routing_protocol == 'min-hop':
         routing_sensing_node = MinHopRouting
         routing_sink_node = MinHopRoutingSink
+    elif routing_protocol == "etx":
+        routing_sensing_node = ETX
+        routing_sink_node = ETXSink
     else:  # Default routing protocol
-        routing_sensing_node = MinHopRouting
-        routing_sink_node = MinHopRoutingSink
+        raise ValueError(f"{routing_protocol} is not a valid protocol")
     for node in regular_nodes:
         if isinstance(node, SensingNode):
             simulation_node = SimulationSensingNode(node.address,

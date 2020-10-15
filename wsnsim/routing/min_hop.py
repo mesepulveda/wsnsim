@@ -127,6 +127,11 @@ class MinHopRouting(_MinHopRouting):
         super().__init__(address, radio, env)
         self.hop_count = 99
 
+    def setup(self) -> Generator[Event, Any, Any]:
+        """Void setup, added for generality."""
+        # noinspection PyArgumentEqualDefault
+        yield self.env.timeout(0)
+
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
         self._log_received_message(message)
