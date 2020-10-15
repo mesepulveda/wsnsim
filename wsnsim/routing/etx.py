@@ -86,12 +86,6 @@ class _ETX(RoutingProtocol):
         self.etx = 999999
         self._neighbours = dict()
 
-    def update_etx(self) -> None:
-        """Updates the ETX count."""
-        neighbours = self._neighbours.values()
-        neighbours_etx = [neighbour.total_etx for neighbour in neighbours]
-        self.etx = min(neighbours_etx)
-
     def add_to_output_queue(self, message: str, destination: str) \
             -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
@@ -164,6 +158,12 @@ class ETX(_ETX):
             for address, neighbour in self._neighbours.items():
                 yield self.env.timeout(probe_period)
                 self.env.process(self.add_to_output_queue(message, address))
+
+    def update_etx(self) -> None:
+        """Updates the ETX count."""
+        neighbours = self._neighbours.values()
+        neighbours_etx = [neighbour.total_etx for neighbour in neighbours]
+        self.etx = min(neighbours_etx)
 
     def share_etx(self) -> Generator[Event, Any, Any]:
         """Routine to share the own ETX periodically."""
