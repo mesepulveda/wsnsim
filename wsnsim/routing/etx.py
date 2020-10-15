@@ -62,8 +62,8 @@ class Neighbour:
 
 
 def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
-    """Returns the address of the selected forwarder with minimum ETX to
-    sink."""
+    """Returns the address of the selected forwarder with minimum ETX toward
+    the sink."""
     neighbours = neighbours_dict.values()
     min_total_etx = min({neighbour.total_etx for neighbour in neighbours})
     # <= added instead of == for float compatibility
