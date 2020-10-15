@@ -153,7 +153,7 @@ class ETX(_ETX):
 
     def active_link_probing(self) -> Generator[Event, Any, Any]:
         """Routine to actively probe the links with dummy packets."""
-        yield self.env.timeout(10)
+        yield self.env.timeout(1)
         probe_per_hour = self.probe_packet_rate*len(self._neighbours)
         probe_period = 60*60/probe_per_hour
         while True:
