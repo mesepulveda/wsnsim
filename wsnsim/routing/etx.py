@@ -66,7 +66,7 @@ def _find_min_etx_neighbour(neighbours_dict: Dict[str, Neighbour]) -> str:
     the sink."""
     neighbours = neighbours_dict.values()
     min_total_etx = min({neighbour.total_etx for neighbour in neighbours})
-    # <= added instead of == for float compatibility
+    # '<=' added instead of '==' for floating point arithmetic compatibility
     min_etx_neighbours = [n for n in neighbours
                           if n.total_etx <= min_total_etx]
     neighbour_selected = choice(min_etx_neighbours)
