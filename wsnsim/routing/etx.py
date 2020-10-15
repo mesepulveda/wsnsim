@@ -1,4 +1,12 @@
-"""Implements ETX routing protocol/metric."""
+"""Implements ETX routing protocol/metric.
+
+ETX:
+
+1) Every node has a default etx (etx).
+2) Every node calculates link statistics (link_etx).
+3) A sharing phase start calculating total_etx for every neighbour and updating
+the own etx to min(total_etx) and sharing again...
+"""
 
 from typing import Callable, Generator, Any, Optional, Dict
 from random import choice
@@ -9,16 +17,6 @@ from simpy import Environment, Event
 from .base_routing_protocol import RoutingProtocol
 from ..auxiliary_functions import get_components_of_message, is_hello_message
 
-"""
-ETX:
-
-1) Every node has a default etx (etx).
-2) Every node calculates link statistics (link_etx).
-3) A sharing phase start calculating total_etx for every neighbour and updating
-the own etx to min(total_etx) and sharing again...
-
-"""
-
 
 class Neighbour:
     """Definition of a neighbour in the context of ETX routing."""
@@ -27,7 +25,7 @@ class Neighbour:
         self.address = address
         self.etx = etx
         self.link_etx = []
-        self.total_etx = etx
+        self.total_etx = etx  # = etx + link_etx
 
     def update_etx(self, etx: float) -> None:
         """Updates the etx and total_etx attributes."""
