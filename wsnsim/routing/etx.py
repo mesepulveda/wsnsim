@@ -215,7 +215,7 @@ def is_etx_message(message: str) -> bool:
 
 
 class ETXSink(_ETX):
-    """Class of min-hop routing protocol for sink node."""
+    """Class of ETX routing protocol for sink node."""
 
     def __init__(self,
                  address: str,
