@@ -1,5 +1,5 @@
 """Some functions that might be useful in other files."""
-
+from decimal import Decimal
 from typing import Callable, Iterable
 
 
@@ -53,3 +53,10 @@ def parse_payload(payload: str) -> Iterable[str]:
     payload_components = payload.split('/')
     source, measurement, measurement_time = payload_components
     return source, measurement, float(measurement_time)
+
+
+def float_range(start: float, stop: float, step: float):
+    """Float alternative for range()"""
+    while start < stop:
+        yield float(start)
+        start += Decimal(step)
