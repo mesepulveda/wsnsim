@@ -7,6 +7,7 @@ from .auxiliary_functions import get_components_of_message, is_hello_message, \
     parse_payload
 from .network import SimulationNetwork
 from .node import get_sink_node
+from .routing.dap import is_dap_message
 from .routing.etx import is_etx_message
 
 
@@ -47,7 +48,7 @@ def get_end_to_end_delay_list(received_messages: Iterable[Tuple[float, str]]) \
     end_to_end_list: List[Tuple[str, float]] = []
     for incoming_time, data in received_messages:
         _, _, message = get_components_of_message(data)
-        if is_hello_message(message) or is_etx_message(message):
+        if is_hello_message(message) or is_etx_message(message) or is_dap_message(message):
             continue
         source, _, measurement_time = parse_payload(message)
         delay = incoming_time - measurement_time
