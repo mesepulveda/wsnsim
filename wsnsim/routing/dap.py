@@ -16,8 +16,6 @@ from simpy import Environment, Event
 from .base_routing_protocol import RoutingProtocol
 from ..auxiliary_functions import get_components_of_message, is_hello_message, parse_payload, float_range
 
-DEADLINE = 20
-
 PDF_AND_DAP_RESOLUTION = 1  # In seconds
 PDF_AND_DAP_DURATION = 30  # In seconds
 
@@ -172,7 +170,7 @@ def convolution_of_dap_with_delay_pdf(dap: DAP, delay_pdf: DelayPDF) -> DAP:
 class _DAPRouting(RoutingProtocol):
     """Implements methods used in DAP for both sink and sensing nodes."""
     _neighbours: Dict[str, Neighbour]
-    deadline = DEADLINE
+    deadline: float
     dap_share_period = 60*60  # Time between messages sharing the own DAP
 
     def __init__(self,
