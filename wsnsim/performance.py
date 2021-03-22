@@ -34,11 +34,24 @@ class NetworkPerformance:
         """Plots the statistics."""
         end_to_end_delay = self.calculate_end_to_end_delay_pdf()
         for node, delay_list in end_to_end_delay.items():
+            # Calculate DMR
+            node_dmr = calculate_dmr(delay_list, self.deadline)
+            print(f'Node {node} DMR: {node_dmr}')
+            # Plot delay histogram
             plt.figure()
             plt.hist(delay_list, density=True)
             plt.grid()
             plt.title(node)
             plt.show()
+
+
+def calculate_dmr(delay_list: list, deadline: float) -> float:
+    """Returns the node's deadline miss ratio (DMR)."""
+    miss = 0
+    for delay in delay_list:
+        if delay > deadline:
+            miss += 1
+    return miss/len(delay_list)
 
 
 def get_end_to_end_delay_list(received_messages: Iterable[Tuple[float, str]]) \
