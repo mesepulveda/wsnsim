@@ -14,7 +14,9 @@ def test_1():
     # Show information about the network
     network.display_summary()
     # Create simulation
-    simulation = Simulation(network, routing_protocol='etx')  # min-hop, etx or dap
+    routing_protocol = 'dap'  # min-hop, etx or dap
+    deadline = 20  # In seconds
+    simulation = Simulation(network, routing_protocol, deadline)
     # Run it
     simulation.run(2*60)  # Time in seconds
 

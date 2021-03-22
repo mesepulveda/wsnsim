@@ -14,10 +14,11 @@ from .routing.etx import is_etx_message
 class NetworkPerformance:
     """Performs the calculations of the network performance."""
 
-    def __init__(self, network: SimulationNetwork):
+    def __init__(self, network: SimulationNetwork, deadline: float):
         self.nodes = network.nodes.copy()
         self.sink = get_sink_node(self.nodes)
         self.nodes.remove(self.sink)
+        self.deadline = deadline
         self.show_end_to_end_statistics()
 
     def calculate_end_to_end_delay_pdf(self) -> Dict:

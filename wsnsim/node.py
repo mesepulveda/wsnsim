@@ -136,6 +136,7 @@ SimulationNode = Union[SimulationSinkNode, SimulationSensingNode]
 def convert_to_simulation_nodes(
         regular_nodes: Iterable[Node],
         routing_protocol: str,
+        deadline: float,
         send_data_function: Callable[[str], Generator[Event, Any, Any]],
         env: Environment) \
         -> Iterable[SimulationNode]:
@@ -150,6 +151,8 @@ def convert_to_simulation_nodes(
     elif routing_protocol == 'dap':
         routing_sensing_node = DAPRouting
         routing_sink_node = DAPRoutingSink
+        routing_sensing_node.deadline = deadline
+        routing_sink_node.deadline = deadline
     else:  # Default routing protocol
         raise ValueError(f"{routing_protocol} is not a valid protocol")
     for node in regular_nodes:
