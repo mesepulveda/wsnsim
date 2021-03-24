@@ -26,8 +26,7 @@ class Simulation:
                                                        deadline,
                                                        send_data_function,
                                                        self.env)
-        simulation_links = convert_to_simulation_links(network.links,
-                                                       simulation_nodes)
+        simulation_links = convert_to_simulation_links(network.links, simulation_nodes)
         self.medium.setup_links(simulation_links)
         self.network = SimulationNetwork(simulation_nodes, simulation_links)
         self.deadline = deadline

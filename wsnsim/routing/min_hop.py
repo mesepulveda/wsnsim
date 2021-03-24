@@ -51,7 +51,7 @@ class _MinHopRouting(RoutingProtocol):
                  radio: Callable[[str], Generator[Event, Any, Any]],
                  env: Environment) -> None:
         super().__init__(address, radio, env)
-        self.hop_count = 99
+        self.hop_count = 9999999
         self._neighbours = dict()
 
     def update_hop_count(self, hop_count: int) -> bool:
@@ -62,20 +62,18 @@ class _MinHopRouting(RoutingProtocol):
             return True
         return False
 
-    def add_to_output_queue(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def add_to_output_queue(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         self._log_output_queue_message(message, destination)
         with self._output_queue.request() as req:
             yield req
             yield self.env.process(self._send_packet(message, destination))
 
-    def _send_packet(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def _send_packet(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Method to send a message to a destination."""
         next_hop_address = self._choose_next_hop_address(destination)
         if next_hop_address is None:
-            raise Exception('No next hop address was returned to route·')
+            raise Exception('No next-hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
         self._print_info(f'sending: {data}')
         self._log_message_sending(data, destination)
@@ -128,7 +126,7 @@ class MinHopRouting(_MinHopRouting):
         self.hop_count = 99
 
     def setup(self) -> Generator[Event, Any, Any]:
-        """Void setup, added for generality."""
+        """Void setup, added for generality of all routing protocols."""
         # noinspection PyArgumentEqualDefault
         yield self.env.timeout(0)
 

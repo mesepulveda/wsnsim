@@ -4,11 +4,9 @@ from typing import Iterable, Tuple, List, Dict
 import matplotlib.pyplot as plt
 
 from .auxiliary_functions import get_components_of_message, is_hello_message, \
-    parse_payload
+    parse_payload, is_etx_message, is_dap_message
 from .network import SimulationNetwork
 from .node import get_sink_node
-from .routing.dap import is_dap_message
-from .routing.etx import is_etx_message
 
 
 class NetworkPerformance:
@@ -54,10 +52,8 @@ def calculate_dmr(delay_list: list, deadline: float) -> float:
     return miss/len(delay_list)
 
 
-def get_end_to_end_delay_list(received_messages: Iterable[Tuple[float, str]]) \
-        -> Iterable[Tuple[str, float]]:
-    """Returns a list of (origin, delay) tuples from a sink received messages
-    list."""
+def get_end_to_end_delay_list(received_messages: Iterable[Tuple[float, str]]) -> Iterable[Tuple[str, float]]:
+    """Returns a list of (origin, delay) tuples from a sink received messages list."""
 
     end_to_end_list: List[Tuple[str, float]] = []
     for incoming_time, data in received_messages:
@@ -70,9 +66,8 @@ def get_end_to_end_delay_list(received_messages: Iterable[Tuple[float, str]]) \
     return end_to_end_list
 
 
-def split_end_to_end_delay_list(end_to_end_list: Iterable[Tuple[str, float]]) \
-        -> Dict:
-    """Does something."""
+def split_end_to_end_delay_list(end_to_end_list: Iterable[Tuple[str, float]]) -> Dict:
+    """Splits the delay list and returns a dictionary."""
 
     split_delay_dict = {}
     for node, delay in end_to_end_list:

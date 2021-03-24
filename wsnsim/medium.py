@@ -21,8 +21,7 @@ class Medium:
 
     def send_data_to_medium(self, data: str) -> Generator[Event, Any, Any]:
         """Sends the data to the medium in order to reach other nodes."""
-        origin_address, destination_address, _ = \
-            get_components_of_message(data)
+        origin_address, destination_address, _ = get_components_of_message(data)
         if destination_address == '':
             # For broadcast, find all the links available from origin
             links = get_all_links_of_node(origin_address, self._links)
@@ -34,9 +33,7 @@ class Medium:
                 destination.receive_message(data)
         else:
             # In case of message to specific node, the message is delayed
-            link = get_link_between_nodes(origin_address,
-                                          destination_address,
-                                          self._links)
+            link = get_link_between_nodes(origin_address, destination_address, self._links)
             destination = link.get_destination(origin_address)
             # Wait for a realization of the delay random variable
             yield self.env.timeout(link.get_delay())

@@ -9,8 +9,7 @@ from .node import Node, SimulationNode, get_equivalent_simulation_node
 class Link:
     """Relates two nodes in a physical medium."""
 
-    def __init__(self, node_1: Node, node_2: Node,
-                 delay_function: Callable[[], float]) -> None:
+    def __init__(self, node_1: Node, node_2: Node, delay_function: Callable[[], float]) -> None:
         self.nodes = sorted([node_1, node_2], key=lambda node: node.address)
         self._delay_function = delay_function
 
@@ -23,8 +22,7 @@ class Link:
 class SimulationLink(Link):
     """Extends Link class in order to simulate."""
 
-    def __init__(self, node_1: SimulationNode, node_2: SimulationNode,
-                 delay_function: Callable[[], float]) -> None:
+    def __init__(self, node_1: SimulationNode, node_2: SimulationNode, delay_function: Callable[[], float]) -> None:
         super().__init__(node_1, node_2, delay_function)
         self.nodes = sorted([node_1, node_2], key=lambda node: node.address)
         self._delay_function = delay_function
@@ -44,22 +42,19 @@ class SimulationLink(Link):
         return f'{self.nodes[0].address}, {self.nodes[0].address}'
 
 
-def convert_to_simulation_links(links: Iterable[Link],
-                                simulation_nodes: Iterable[SimulationNode]) \
+def convert_to_simulation_links(links: Iterable[Link], simulation_nodes: Iterable[SimulationNode]) \
         -> Iterable[SimulationLink]:
     """Returns simulation links from regular links."""
     simulation_links = []
     for link in links:
-        node_1, node_2 = get_equivalent_simulation_node(link.nodes,
-                                                        simulation_nodes)
+        node_1, node_2 = get_equivalent_simulation_node(link.nodes, simulation_nodes)
         # noinspection PyProtectedMember
         simulation_link = SimulationLink(node_1, node_2, link._delay_function)
         simulation_links.append(simulation_link)
     return simulation_links
 
 
-def get_all_links_of_node(node_address: str, links: Iterable[SimulationLink]) \
-        -> Iterable[SimulationLink]:
+def get_all_links_of_node(node_address: str, links: Iterable[SimulationLink]) -> Iterable[SimulationLink]:
     """Returns all the links of a node."""
     node_links = []
     for link in links:
@@ -69,8 +64,7 @@ def get_all_links_of_node(node_address: str, links: Iterable[SimulationLink]) \
     return node_links
 
 
-def get_link_between_nodes(node1_address: str, node2_address: str,
-                           links: Iterable[SimulationLink]) -> SimulationLink:
+def get_link_between_nodes(node1_address: str, node2_address: str, links: Iterable[SimulationLink]) -> SimulationLink:
     """Returns the link between two nodes."""
     for link in links:
         link_node_addresses = {node.address for node in link.nodes}

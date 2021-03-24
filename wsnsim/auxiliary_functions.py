@@ -1,4 +1,4 @@
-"""Some functions that might be useful in other files."""
+"""Some functions that are useful in other files."""
 from decimal import Decimal
 from typing import Callable, Iterable
 
@@ -34,8 +34,7 @@ def ensure_positive_value(function: Callable[..., float]) \
 
 
 def get_components_of_message(data: str) -> Iterable[str]:
-    """Returns the three components (origin, destination, message)
-    of a data packet."""
+    """Returns the three components (origin, destination, message) of a data packet."""
     data_list = data.split(',')
     origin, destination, message = data_list
     return origin, destination, message
@@ -55,8 +54,41 @@ def parse_payload(payload: str) -> Iterable[str]:
     return source, measurement, float(measurement_time)
 
 
-def float_range(start: float, stop: float, step: float):
+def float_range(start: float, stop: float, step: float) -> Iterable:
     """Float alternative for range()"""
     while start < stop:
         yield float(start)
         start += Decimal(step)
+
+
+def is_etx_message(message: str) -> bool:
+    """Checks if a message contains information about some neighbour ETX."""
+    if "ETX" in message:
+        return True
+    return False
+
+
+def divide_vector(vector: list, number: float) -> list:
+    """Divides a vector."""
+    divided_vector = [value / number for value in vector]
+    return divided_vector
+
+
+def multiply_vector(vector: list, number: float) -> list:
+    """Multiply a vector."""
+    multiplied_vector = [value * number for value in vector]
+    return multiplied_vector
+
+
+def find_index_of_delay(sample: float, delay_vector: list) -> int:
+    """Returns the corresponding index for a new sample of the delay pdf."""
+    for index, delay_value in enumerate(delay_vector):
+        if sample <= delay_value:
+            return index
+
+
+def is_dap_message(message: str) -> bool:
+    """Checks if a message contains information about some neighbour DAP."""
+    if "DAP" in message:
+        return True
+    return False

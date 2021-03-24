@@ -2,7 +2,7 @@
 
 DAP:
 
-1) Every node has a default end-to-end delay pdf.
+1) Every node has a default DAP.
 2) Every node calculates link delay pdf with its neighbours.
 3) A sharing phase start calculating DAP through every neighbour and updating
 the own DAP to max(DAP | next-hop = u_i) and sharing again...
@@ -14,33 +14,23 @@ from random import choice
 from simpy import Environment, Event
 
 from .base_routing_protocol import RoutingProtocol
-from ..auxiliary_functions import get_components_of_message, is_hello_message, parse_payload, float_range
+from ..auxiliary_functions import get_components_of_message, is_hello_message, parse_payload, float_range, \
+    divide_vector, multiply_vector, find_index_of_delay, is_dap_message
 
 PDF_AND_DAP_RESOLUTION = 1  # In seconds
 PDF_AND_DAP_DURATION = 30  # In seconds
 
 
-def divide_vector(vector: list, number: float):
-    """Divides a vector."""
-    divided_vector = [value / number for value in vector]
-    return divided_vector
-
-
-def multiply_vector(vector: list, number: float):
-    """Multiply a vector."""
-    multiplied_vector = [value * number for value in vector]
-    return multiplied_vector
-
-
 class DelayPDF:
     """Delay PDF object."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        # The last entry represents an infinite delay
         self.delay_vector = list(float_range(0, PDF_AND_DAP_DURATION, PDF_AND_DAP_RESOLUTION)) + [float('inf')]
         self.delay_pdf_vector = [0] * len(self.delay_vector)
         self._number_of_samples = 0
 
-    def update_with_new_sample(self, sample: float):
+    def update_with_new_sample(self, sample: float) -> None:
         """Updates the delay pdf information with a new sample."""
         old_number_of_samples = self._number_of_samples
         self._number_of_samples += 1
@@ -50,7 +40,8 @@ class DelayPDF:
             return
         denormalized_pdf = multiply_vector(self.delay_pdf_vector, old_number_of_samples)
         denormalized_pdf[index] += 1
-        self.delay_pdf_vector = divide_vector(denormalized_pdf, self._number_of_samples)
+        normalized_pdf = divide_vector(denormalized_pdf, self._number_of_samples)
+        self.delay_pdf_vector = normalized_pdf
 
     def __len__(self):
         return len(self.delay_vector)
@@ -64,16 +55,16 @@ class DelayPDF:
 class DAP:
     """DAP object."""
 
-    def __init__(self, dap_vector: list = None, sink: bool = False):
+    def __init__(self, dap_vector: list = None, sink: bool = False) -> None:
         self.deadline_vector = list(float_range(0, PDF_AND_DAP_DURATION, PDF_AND_DAP_RESOLUTION)) + [float('inf')]
         if dap_vector:
             self.dap_vector = dap_vector
         else:
             if sink:
+                # Since it is the destination node, the DAP is 1 for sink
                 self.dap_vector = [1] * len(self.deadline_vector)
             else:
                 self.dap_vector = [0] * len(self.deadline_vector)
-
 
     def get_dap(self, deadline: float) -> float:
         """Returns the DAP for a given deadline."""
@@ -136,37 +127,6 @@ class Neighbour:
         return hash(self.address)
 
 
-def find_index_of_delay(sample: float, delay_vector: list):
-    """Returns the corresponding index for a new sample of the delay pdf."""
-    for index, delay_value in enumerate(delay_vector):
-        if sample <= delay_value:
-            return index
-
-
-def convolution_of_dap_with_delay_pdf(dap: DAP, delay_pdf: DelayPDF) -> DAP:
-    """Convolve a DAP with a DelayPDF in order to generate a new DAP."""
-    dap_vector = dap.dap_vector
-    dap_length = len(dap_vector)
-
-    delay_vector = delay_pdf.delay_pdf_vector
-    delay_length = len(delay_vector)
-
-    assert dap_length == delay_length
-    new_dap = [0]*dap_length
-
-    for delay_index, delay_value in enumerate(delay_vector):
-        for dap_index, dap_value in enumerate(dap_vector):
-            new_dap_index = delay_index + dap_index
-            new_dap_probability = delay_value*dap_value
-            if new_dap_index < dap_length - 1:
-                new_dap[new_dap_index] += new_dap_probability
-            else:
-                new_dap[-1] += new_dap_probability
-    if new_dap[-1] > 1:
-        new_dap[-1] = 1.0
-    return DAP(new_dap)
-
-
 class _DAPRouting(RoutingProtocol):
     """Implements methods used in DAP for both sink and sensing nodes."""
     _neighbours: Dict[str, Neighbour]
@@ -180,16 +140,14 @@ class _DAPRouting(RoutingProtocol):
         super().__init__(address, radio, env)
         self._neighbours = dict()
 
-    def add_to_output_queue(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def add_to_output_queue(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         self._log_output_queue_message(message, destination)
         with self._output_queue.request() as req:
             yield req
             yield self.env.process(self._send_packet(message, destination))
 
-    def _send_packet(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def _send_packet(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Method to send a message to a destination."""
         prove_packet = destination not in ['', 'broadcast', 'sink']
         if is_hello_message(message) or is_dap_message(message):
@@ -201,7 +159,7 @@ class _DAPRouting(RoutingProtocol):
         if next_hop_address is None:
             raise Exception('No next hop address was returned to route·')
         data = '{},{},{}'.format(self.address, next_hop_address, message)
-        self._print_info(f'sending: {data[:200]}')
+        self._print_info(f'sending: {data}')
         self._log_message_sending(data, destination)
         if prove_packet:
             start_time = self.env.now
@@ -245,7 +203,6 @@ def _find_max_dap_neighbour(neighbours_dict: Dict[str, Neighbour], time_to_deadl
 
 class DAPRouting(_DAPRouting):
     """Class of DAP routing protocol for sensing nodes."""
-
     probe_packet_rate = 1  # Per neighbour per hour
 
     def __init__(self,
@@ -288,7 +245,7 @@ class DAPRouting(_DAPRouting):
             yield self.env.timeout(self.dap_share_period)
 
     def setup(self) -> Generator[Event, Any, Any]:
-        """Initiates the neighbours discovery with hop count."""
+        """Initiates the neighbours discovery."""
         self.env.process(self.share_dap())
         self.env.process(self.active_link_probing())
         # noinspection PyArgumentEqualDefault
@@ -297,7 +254,7 @@ class DAPRouting(_DAPRouting):
     def receive_packet(self, message: str) -> None:
         """Method called when a packet arrives."""
         self._log_received_message(message)
-        self._print_info(f'received: {message[:200]}')
+        self._print_info(f'received: {message}')
         origin_address, destination_address, info = \
             get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
@@ -313,18 +270,10 @@ class DAPRouting(_DAPRouting):
             return
 
     def _analyze_dap_message(self, origin_address: str, info: str) -> None:
-        """Updates the neighbour information with a new DAP or discard if it is
-         a dummy packet."""
+        """Updates the neighbour information with a new DAP or discard if it is a dummy packet."""
         if "dummy" not in info:
             new_dap = info.split('+')[1]
             self._neighbours[origin_address].update_dap(new_dap)
-
-
-def is_dap_message(message: str) -> bool:
-    """Checks if a message contains information about some neighbour DAP."""
-    if "DAP" in message:
-        return True
-    return False
 
 
 class DAPRoutingSink(_DAPRouting):
@@ -365,3 +314,27 @@ class DAPRoutingSink(_DAPRouting):
         else:
             # It is not a hello message, so it reached the sink node
             self._print_info(f'message: {info} reached sink node')
+
+
+def convolution_of_dap_with_delay_pdf(dap: DAP, delay_pdf: DelayPDF) -> DAP:
+    """Convolve a DAP with a DelayPDF in order to generate a new DAP."""
+    dap_vector = dap.dap_vector
+    dap_length = len(dap_vector)
+
+    delay_vector = delay_pdf.delay_pdf_vector
+    delay_length = len(delay_vector)
+
+    assert dap_length == delay_length
+    new_dap = [0.0]*dap_length
+
+    for delay_index, delay_value in enumerate(delay_vector):
+        for dap_index, dap_value in enumerate(dap_vector):
+            new_dap_index = delay_index + dap_index
+            new_dap_probability = delay_value*dap_value
+            if new_dap_index < dap_length - 1:
+                new_dap[new_dap_index] += new_dap_probability
+            else:
+                new_dap[-1] += new_dap_probability
+    if new_dap[-1] > 1:
+        new_dap[-1] = 1.0
+    return DAP(new_dap)
