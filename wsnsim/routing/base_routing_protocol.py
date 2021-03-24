@@ -16,8 +16,12 @@ class RoutingProtocol:
         self._radio = radio
         self.env = env
         # noinspection PyArgumentEqualDefault
+        # 'capacity' sets the quantity of packets that can be sent at the same time
+        # 'capacity=1' sets a more realistic model with queue delay for congested networks
+        # 'capacity=9999999' sets a less realistic model without queue delay for congested networks
         self._output_queue = Resource(env, capacity=1)
         # List to save messages in format: (timestamp, message)
+        # Used to calculate performance
         self._received_messages = []
         self._output_queue_messages = []
         self._message_sending = []
@@ -31,21 +35,19 @@ class RoutingProtocol:
         """Method called when a packet arrives."""
         pass
 
-    def add_to_output_queue(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def add_to_output_queue(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         pass
 
-    def _print_info(self, info: str) -> None:
-        """Print information with format."""
-        print(f'{self.env.now:.2f} | {self.address} | {info}')
+    def _print_info(self, info: str, limit: int = 200) -> None:
+        """Prints information with format."""
+        print(f'{self.env.now:.2f} | {self.address} | {info[:limit]}')
 
     def _log_received_message(self, message: str) -> None:
         """Logs the timestamp when a message is received."""
         self._received_messages.append((self.env.now, message))
 
-    def _log_output_queue_message(self, message: str, destination: str) \
-            -> None:
+    def _log_output_queue_message(self, message: str, destination: str) -> None:
         """Logs the timestamp when a message arrives to output queue."""
         self._output_queue_messages.append((self.env.now,
                                             message,

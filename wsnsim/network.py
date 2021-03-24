@@ -29,7 +29,5 @@ class Network:
 class SimulationNetwork(Network):
     """Extends Network class in order to simulate."""
 
-    def __init__(self,
-                 simulation_nodes: Iterable[SimulationNode],
-                 simulation_links: Iterable[SimulationLink]):
+    def __init__(self, simulation_nodes: Iterable[SimulationNode], simulation_links: Iterable[SimulationLink]):
         super().__init__(simulation_nodes, simulation_links)

@@ -1,4 +1,4 @@
-"""Implements ETX routing protocol/metric.
+"""Implements ETX (or mean delay) routing protocol/metric.
 
 ETX:
 
@@ -15,7 +15,7 @@ from statistics import mean
 from simpy import Environment, Event
 
 from .base_routing_protocol import RoutingProtocol
-from ..auxiliary_functions import get_components_of_message, is_hello_message
+from ..auxiliary_functions import get_components_of_message, is_hello_message, is_etx_message
 
 
 class Neighbour:
@@ -86,16 +86,14 @@ class _ETX(RoutingProtocol):
         self.etx = 999999
         self._neighbours = dict()
 
-    def add_to_output_queue(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def add_to_output_queue(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Adds a message to the output queue."""
         self._log_output_queue_message(message, destination)
         with self._output_queue.request() as req:
             yield req
             yield self.env.process(self._send_packet(message, destination))
 
-    def _send_packet(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def _send_packet(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Method to send a message to a destination."""
         prove_packet = destination not in ['', 'broadcast', 'sink']
         next_hop_address = self._choose_next_hop_address(destination)
@@ -135,7 +133,6 @@ class _ETX(RoutingProtocol):
 
 class ETX(_ETX):
     """Class of ETX routing protocol for sensing nodes."""
-
     probe_packet_rate = 1  # Per neighbour per hour
 
     def __init__(self,
@@ -185,8 +182,7 @@ class ETX(_ETX):
         """Method called when a packet arrives."""
         self._log_received_message(message)
         self._print_info(f'received: {message}')
-        origin_address, destination_address, info = \
-            get_components_of_message(message)
+        origin_address, destination_address, info = get_components_of_message(message)
         assert destination_address == self.address or destination_address == ''
         if is_hello_message(info):
             # It is a hello message
@@ -207,15 +203,8 @@ class ETX(_ETX):
             self._neighbours[origin_address].update_etx(new_etx)
 
 
-def is_etx_message(message: str) -> bool:
-    """Checks if a message contains information about some neighbour ETX."""
-    if "ETX" in message:
-        return True
-    return False
-
-
 class ETXSink(_ETX):
-    """Class of min-hop routing protocol for sink node."""
+    """Class of ETX routing protocol for sink node."""
 
     def __init__(self,
                  address: str,
@@ -232,7 +221,7 @@ class ETXSink(_ETX):
             yield self.env.timeout(self.etx_share_period)
 
     def setup(self) -> None:
-        """Initiates the neighbours discovery with hop count."""
+        """Initiates the neighbours discovery."""
         yield self.env.process(self.add_to_output_queue(f'Hello', 'broadcast'))
         self.env.process(self.share_etx())
 

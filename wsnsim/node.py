@@ -4,7 +4,7 @@ from typing import Union, Optional, Callable, Iterable, Type, Generator, Any
 
 from simpy import Environment, Event
 
-from .routing import MinHopRouting, MinHopRoutingSink, ETX, ETXSink
+from .routing import MinHopRouting, MinHopRoutingSink, ETX, ETXSink, DAPRouting, DAPRoutingSink
 from .routing import RoutingProtocol
 
 
@@ -52,16 +52,13 @@ class SinkNode(_Node):
 class _SimulationNode(_Node):
     """Extends Node class in order to simulate."""
 
-    def __init__(self, address: str, name: str,
-                 routing_protocol: Type[RoutingProtocol],
-                 access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment) -> None:
+    def __init__(self, address: str, name: str, routing_protocol: Type[RoutingProtocol],
+                 access_function: Callable[[str], Generator[Event, Any, Any]], env: Environment) -> None:
         super().__init__(address, name)
         self.routing_protocol = routing_protocol(address, access_function, env)
         self.env = env
 
-    def _send_message(self, message: str, destination: str) \
-            -> Generator[Event, Any, Any]:
+    def _send_message(self, message: str, destination: str) -> Generator[Event, Any, Any]:
         """Sends a message to sink or neighbour nodes."""
         # Pass the message to the routing protocol
         event = self.routing_protocol.add_to_output_queue(message, destination)
@@ -80,15 +77,11 @@ class _SimulationNode(_Node):
 class SimulationSensingNode(_SimulationNode, SensingNode):
     """Extends SensingNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address: str, name: str,
-                 routing_protocol: Type[RoutingProtocol],
-                 access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment, sensing_period: float,
+    def __init__(self, address: str, name: str, routing_protocol: Type[RoutingProtocol],
+                 access_function: Callable[[str], Generator[Event, Any, Any]], env: Environment, sensing_period: float,
                  sensing_offset: float) -> None:
-        _SimulationNode.__init__(self, address, name, routing_protocol,
-                                 access_function, env)
-        SensingNode.__init__(self, address, sensing_period=sensing_period,
-                             sensing_offset=sensing_offset)
+        _SimulationNode.__init__(self, address, name, routing_protocol, access_function, env)
+        SensingNode.__init__(self, address, sensing_period=sensing_period, sensing_offset=sensing_offset)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
@@ -112,12 +105,9 @@ class SimulationSensingNode(_SimulationNode, SensingNode):
 class SimulationSinkNode(_SimulationNode, SinkNode):
     """Extends SinkNode and SimulationNode class in order to simulate."""
 
-    def __init__(self, address: str, name: str,
-                 routing_protocol: Type[RoutingProtocol],
-                 access_function: Callable[[str], Generator[Event, Any, Any]],
-                 env: Environment) -> None:
-        _SimulationNode.__init__(self, address, name, routing_protocol,
-                                 access_function, env)
+    def __init__(self, address: str, name: str, routing_protocol: Type[RoutingProtocol],
+                 access_function: Callable[[str], Generator[Event, Any, Any]], env: Environment) -> None:
+        _SimulationNode.__init__(self, address, name, routing_protocol, access_function, env)
         self.env.process(self._main_routine())
 
     def _main_routine(self) -> Generator[Event, Any, Any]:
@@ -136,9 +126,9 @@ SimulationNode = Union[SimulationSinkNode, SimulationSensingNode]
 def convert_to_simulation_nodes(
         regular_nodes: Iterable[Node],
         routing_protocol: str,
+        deadline: float,
         send_data_function: Callable[[str], Generator[Event, Any, Any]],
-        env: Environment) \
-        -> Iterable[SimulationNode]:
+        env: Environment) -> Iterable[SimulationNode]:
     """Returns simulation nodes from regular nodes."""
     simulation_nodes = []
     if routing_protocol == 'min-hop':
@@ -147,6 +137,11 @@ def convert_to_simulation_nodes(
     elif routing_protocol == "etx":
         routing_sensing_node = ETX
         routing_sink_node = ETXSink
+    elif routing_protocol == 'dap':
+        routing_sensing_node = DAPRouting
+        routing_sink_node = DAPRoutingSink
+        routing_sensing_node.deadline = deadline
+        routing_sink_node.deadline = deadline
     else:  # Default routing protocol
         raise ValueError(f"{routing_protocol} is not a valid protocol")
     for node in regular_nodes:
