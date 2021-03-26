@@ -1,7 +1,7 @@
 # wsnsim: Wireless Sensor Network Simulator
 This is another Wireless Sensor Network simulator, this time in Python3.
 
-Currently, two routing protocols are implemented: min-hop, ETX (mean delay) and Deadline Achievement Probability (DAP).
+Currently, three routing protocols are implemented: min-hop, ETX (mean delay) and Deadline Achievement Probability (DAP).
 
 ## Setup
 
